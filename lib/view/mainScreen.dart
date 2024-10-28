@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:projeto_mobile/appointmentScreen.dart';
-import 'package:projeto_mobile/medicationScreen.dart';
-import 'package:projeto_mobile/taskScreen.dart';
+import 'package:projeto_mobile/services/imageService.dart';
+import 'package:projeto_mobile/view/appointmentScreen.dart';
+import 'package:projeto_mobile/view/medicationScreen.dart';
+import 'package:projeto_mobile/view/taskScreen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
         length: 3,
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Remanegy (temporario)'),
+            title: const Text('Remanegy'),
             centerTitle: true,
             bottom: TabBar(
                 indicatorColor: Colors.blueAccent[400],
@@ -28,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
                     icon: Icon(
                       Icons.medication_outlined,
                     ),
-                    text: "Remédios",
+                    text: "Medicamentos",
                   ),
                   Tab(
                     icon: Icon(
