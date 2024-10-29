@@ -15,7 +15,7 @@ class MainApp extends StatelessWidget {
     return Sizer(
       builder: (context, orientation, screenType) {
         return const MaterialApp(
-          home: AddMedicationScreen(),
+          home: MainScreen(),
         );
       },
     );

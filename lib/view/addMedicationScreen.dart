@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:projeto_mobile/model/timePickerModel.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:sizer/sizer.dart';
 
@@ -13,6 +14,112 @@ class AddMedicationScreen extends StatefulWidget {
 }
 
 class _AddMedicationScreenState extends State<AddMedicationScreen> {
+  final TextEditingController _hourController = TextEditingController();
+  final TextEditingController _minuteController = TextEditingController();
+
+  List<TimePickerModel> _timePickers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _timePickers.add(TimePickerModel());
+  }
+
+  @override
+  void dispose() {
+    _usageRangeController.dispose();
+    // Dispose de todos os controladores de timePickers
+    for (var picker in _timePickers) {
+      picker.hourController.dispose();
+      picker.minuteController.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onUsageChanged(String value) {
+    int? count = int.tryParse(value);
+    if (count != null && count > 0) {
+      setState(() {
+        _updateTimePickers(count); // Atualiza a lista com o novo valor
+      });
+    } else {
+      setState(() {
+        _updateTimePickers(1); // Default para 1
+      });
+    }
+  }
+
+  void _updateTimePickers([int count = 1]) {
+    // Garante que a lista tenha o tamanho correto
+    if (_timePickers.length < count) {
+      _timePickers.addAll(
+        List.generate(count - _timePickers.length, (_) => TimePickerModel()),
+      );
+    } else if (_timePickers.length > count) {
+      _timePickers.removeRange(count, _timePickers.length);
+    }
+  }
+
+  String get formattedTime {
+    final hour = _hourController.text.padLeft(2, '0');
+    final minute = _minuteController.text.padLeft(2, '0');
+    return "$hour:$minute";
+  }
+
+  void _validateAndSetHour(String value, int index) {
+    final hour = int.tryParse(value);
+    if (hour == null || hour < 0 || hour > 23) {
+      _timePickers[index].hourController.text = '00'; // Valor padrão
+    }
+  }
+
+  void _onHourInputChanged(String value, int index) {
+    _validateAndSetHour(value, index);
+    if (value.length > 2) {
+      // Se o comprimento excede 2, substitua o último caractere
+      _timePickers[index].hourController.text = value.substring(1);
+      _timePickers[index].hourController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _timePickers[index].hourController.text.length),
+      );
+      _validateAndSetHour(value, index);
+    }
+  }
+
+  void _validateAndSetMinute(String value, int index) {
+    final minute = int.tryParse(value);
+    if (minute == null || minute < 0 || minute > 59) {
+      _timePickers[index].minuteController.text = '00'; // Valor padrão
+    }
+  }
+
+  void _onMinuteInputChanged(String value, int index) {
+    _validateAndSetMinute(value, index);
+    if (value.length > 2) {
+      // Se o comprimento excede 2, substitua o último caractere
+      _timePickers[index].minuteController.text = value.substring(1);
+      _timePickers[index].minuteController.selection =
+          TextSelection.fromPosition(
+        TextPosition(offset: _timePickers[index].minuteController.text.length),
+      );
+      _validateAndSetMinute(value, index);
+    }
+  }
+
+  void _calculateMedicationHours(int interval, int doses, int firstHour) {
+    for (int i = 1; i < _timePickers.length; i++) {
+      int newHour = (firstHour + (interval * i)) % 24;
+      if (i > 0) {
+        _timePickers[i].hourController.text = newHour.toString();
+      }
+    }
+  }
+
+  void _calculateMedicationMinutes(int firstMinute) {
+    for (int i = 1; i < _timePickers.length; i++) {
+      _timePickers[i].minuteController.text = firstMinute.toString();
+    }
+  }
+
   DateTime? selectedDate;
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   final TextEditingController _dateController = TextEditingController();
@@ -75,38 +182,69 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   File? _image;
   String? imageUrl;
-  final _userNameController = TextEditingController();
-  final _medicationNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _medicationNameController =
+      TextEditingController();
   String? adminRoute;
   String? howToUse;
-  final _usageRangeController = TextEditingController();
-  final _medicationUnitsController = TextEditingController();
+  final TextEditingController _usageRangeController = TextEditingController();
+
+  final TextEditingController _medicationUnitsController =
+      TextEditingController();
+
+  final TextEditingController _dosageController = TextEditingController();
   String? dueDate;
   List<String> selectedWeekDays = [];
   List<TimeOfDay> medicationTime = [];
   bool isActive = true;
-  String additionalInfo = '';
+  final TextEditingController _additionalInfoController =
+      TextEditingController();
+
+  final TextEditingController _usageTimesController = TextEditingController();
+  final TextEditingController _howToUseController = TextEditingController();
+  final TextEditingController _adminRouteController = TextEditingController();
 
   final List<String> adminRouteList = [
-    'Oral = Comprimido, xarope, gotas',
-    'Tópico = Pomada, creme',
-    'Injetável = Ampola intramuscular, Ampola intravenosa, Ampola subcutânea',
-    'Nasal = Spray, gotas',
-    'Inalatório = Bombinha, nebulização',
-    'Ocular = Colírio',
-    'Otológico = Gotas',
-    'Retal = Supositório'
+    'Oral',
+    'Tópico',
+    'Injetável',
+    'Nasal',
+    'Inalatório',
+    'Ocular',
+    'Otológico',
+    'Retal'
   ];
 
-  final List<String> howToUseList = [
-    'Comprimidos',
-    'Ml (mililitros)',
-    'Ampolas'
+  final List<String> oralList = ['Comprimido', 'Xarope', 'Gotas'];
+
+  final List<String> topicoList = [
+    'Pomada',
+    'Creme',
   ];
+
+  final List<String> injetavelList = [
+    'Ampola intramuscular',
+    'Ampola intravenosa',
+    'Ampola subcutânea'
+  ];
+
+  final List<String> nasalList = [
+    'Spray',
+    'Gotas',
+  ];
+
+  final List<String> inalatorioList = ['Bombinha', 'Nebulização'];
+
+  final List<String> ocularList = ['Colírio'];
+
+  final List<String> otologicoList = ['Gotas'];
+
+  final List<String> retalList = ['Supositório'];
 
   void selectAdminRoute(value) {
     setState(() {
       adminRoute = value;
+      _howToUseController.clear();
     });
   }
 
@@ -171,36 +309,106 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             SizedBox(
               height: 4.h,
             ),
-            _buildTextField(_userNameController, 'Nome', isUserName: true),
-            _buildTextField(_medicationNameController, 'Medicamento',
-                isMedicationName: true),
+            _buildTextField(
+                _userNameController, 'Nome', 'Para quem é esse medicamento?'),
+            _buildTextField(
+              _medicationNameController,
+              'Medicamento',
+              'Qual o nome do medicamento?',
+            ),
             _buildDropdownList('Via de administração', adminRouteList,
                 isAdminRoute: true),
-            _buildDropdownList('Como usar?', howToUseList, isHowToUse: true),
-            _buildTextField(_usageRangeController, 'Intervalo de uso',
-                isNumber: true, isUsageRange: true),
+            _buildDropdownList(
+                'Como usar?',
+                adminRoute == 'Oral'
+                    ? oralList
+                    : adminRoute == 'Tópico'
+                        ? topicoList
+                        : adminRoute == 'Injetável'
+                            ? injetavelList
+                            : adminRoute == 'Nasal'
+                                ? nasalList
+                                : adminRoute == 'Inalatório'
+                                    ? inalatorioList
+                                    : adminRoute == 'Ocular'
+                                        ? ocularList
+                                        : adminRoute == 'Otológico'
+                                            ? otologicoList
+                                            : adminRoute == 'Retal'
+                                                ? retalList
+                                                : oralList,
+                isHowToUse: true),
+            (howToUse != 'Pomada' && howToUse != 'Creme')
+                ? _buildTextField(
+                    _dosageController,
+                    'Dosagem',
+                    howToUse == 'Comprimido'
+                        ? 'Quantos comprimidos são usados em cada aplicação do medicamento?'
+                        : (howToUse == 'Xarope' || howToUse == 'Nebulização')
+                            ? 'Quantos ml para cada aplicação do medicamento?'
+                            : (howToUse == 'Ampola intramuscular' ||
+                                    howToUse == 'Ampola intravenosa' ||
+                                    howToUse == 'Ampola subcutânea')
+                                ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
+                                : howToUse == 'Spray'
+                                    ? 'Quantas jatos são usados para cada aplicação do medicamento?'
+                                    : howToUse == 'Bombinha'
+                                        ? 'Quantos puffs são usados em cada aplicação?'
+                                        : howToUse == 'Gotas'
+                                            ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
+                                            : howToUse == 'Supositório'
+                                                ? 'Quantos supositórios são usados em cada aplicação?'
+                                                : 'Qual a dosagem do medicamento em cada aplicação?',
+                    isNumber: true,
+                  )
+                : const SizedBox.shrink(),
+            _buildTextField(_usageTimesController, 'Vezes ao dia',
+                'Quantas vezes ao dia você faz uso desse medicamento?',
+                isNumber: true, isUsageTimes: true),
             _buildTextField(
-                _medicationUnitsController, 'Unidades do medicamento',
-                isNumber: true, isMedicationUnits: true),
+              _usageRangeController,
+              'Intervalo de uso',
+              'De quantas em quantas horas você faz uso do medicamento?',
+              isNumber: true,
+            ),
+            _buildTextField(
+              _medicationUnitsController,
+              'Unidades do medicamento',
+              (howToUse == 'Xarope' ||
+                      howToUse == 'Gotas' ||
+                      howToUse == 'Nebulização')
+                  ? 'Quantos ml do medicamento tem no frasco?'
+                  : 'Quantas unidades do medicamento tem no momento',
+              isNumber: true,
+            ),
             _dataPicker(context),
             _weekDaysPicker(context),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 2.h),
+              child: Column(
+                children: _buildTimePickers(),
+              ),
+            ),
+            _buildTextField(
+              _additionalInfoController,
+              'Informações adicionais',
+              'Adicione informações adicionais que você achar necessárias.',
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String labelText,
-      {bool isNumber = false,
-      bool isUserName = false,
-      bool isMedicationName = false,
-      bool isUsageRange = false,
-      bool isMedicationUnits = false}) {
+  Widget _buildTextField(
+      TextEditingController controller, String labelText, String helpText,
+      {bool isNumber = false, bool isUsageTimes = false}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 2.h),
       child: Column(
         children: [
           TextField(
+            onChanged: isUsageTimes ? _onUsageChanged : null,
             controller: controller,
             keyboardType: isNumber ? TextInputType.number : TextInputType.text,
             decoration: InputDecoration(
@@ -215,15 +423,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             children: [
               Expanded(
                 child: Text(
-                  isUserName
-                      ? 'Para quem é esse medicamento?'
-                      : isMedicationName
-                          ? 'Qual o nome do medicamento?'
-                          : isUsageRange
-                              ? 'Quantas vezes no dia você faz o uso desse medicamento?'
-                              : isMedicationUnits
-                                  ? 'Quantas unidades do medicamento tem no momento?'
-                                  : '',
+                  helpText,
                 ),
               ),
             ],
@@ -240,6 +440,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       child: Column(
         children: [
           DropdownMenu<String>(
+            controller: isHowToUse == true
+                ? _howToUseController
+                : _adminRouteController,
             width: double.infinity,
             label: Text(labelText),
             initialSelection: "Selecione um item da lista",
@@ -303,10 +506,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Card(
-            elevation: 20,
-            color: Colors.grey[400],
+            elevation: 5,
+            color: Colors.grey[350],
             child: Padding(
-              padding: EdgeInsets.all(15),
+              padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.h),
               child: Column(
                 children: [
                   Text('Quais são os dias de se usar o medicamento?'),
@@ -336,7 +539,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                         onTap: () => _toggleDay(index),
                         child: CircleAvatar(
                           backgroundColor: selectedDays[index]
-                              ? Colors.purple
+                              ? Colors.blue[600]
                               : Colors.grey[200],
                           child: Text(
                             weekDays[index],
@@ -357,5 +560,103 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildTimePickers() {
+    return _timePickers.map((model) {
+      int index = _timePickers.indexOf(model);
+      return Card(
+        elevation: 5,
+        color: Colors.grey[350],
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Qual o horário do remédio?",
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 2.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Campo de texto para a hora
+                  Column(
+                    children: [
+                      Text("Horas",
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600])),
+                      SizedBox(
+                        width: 25.w,
+                        child: TextField(
+                          readOnly: index != 0,
+                          controller: model.hourController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.blue[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _onHourInputChanged(value, index);
+                            _calculateMedicationHours(
+                              int.tryParse(_usageRangeController.text)!,
+                              int.tryParse(_usageTimesController.text)!,
+                              int.tryParse(
+                                  _timePickers[0].hourController.text)!,
+                            );
+                          },
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 6.w),
+                  const Text(
+                    ":",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(width: 6.w),
+                  // Campo de texto para o minuto
+                  Column(
+                    children: [
+                      Text("Minutos",
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600])),
+                      SizedBox(
+                        width: 25.w,
+                        child: TextField(
+                          readOnly: index != 0,
+                          controller: model.minuteController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.blue[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _onMinuteInputChanged(value, index);
+                            _calculateMedicationMinutes(int.tryParse(
+                                _timePickers[0].minuteController.text)!);
+                          },
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
   }
 }
