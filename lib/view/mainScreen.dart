@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
-import 'package:projeto_mobile/view/appointmentScreen.dart';
+import 'package:projeto_mobile/view/appointment/appointmentScreen.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:projeto_mobile/view/taskScreen.dart';

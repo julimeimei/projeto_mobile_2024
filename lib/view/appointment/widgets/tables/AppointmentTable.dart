@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
-import 'package:projeto_mobile/widgets/dialogs/AppointmentDetailsDialog.dart';
+import 'package:projeto_mobile/view/appointment/widgets/dialogs/AppointmentDetailsDialog.dart';
 
 class AppointmentTable extends StatelessWidget {
   final List<AppointmentModel> appointments;

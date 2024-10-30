@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_mobile/widgets/forms/add_medical_check_form.dart';
+import 'package:projeto_mobile/view/appointment/widgets/forms/add_medical_check_form.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
 
 class AddMedicalCheckDialog extends StatelessWidget {

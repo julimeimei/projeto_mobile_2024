@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_mobile/widgets/dialogs/add_medical_check_dialog.dart';
-import 'package:projeto_mobile/widgets/tables/AppointmentTable.dart';
+import 'package:projeto_mobile/view/appointment/widgets/dialogs/add_medical_check_dialog.dart';
+import 'package:projeto_mobile/view/appointment/widgets/tables/AppointmentTable.dart';
 import 'package:sizer/sizer.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
 
