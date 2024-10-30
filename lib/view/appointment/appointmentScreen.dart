@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/view/appointment/widgets/dialogs/add_medical_check_dialog.dart';
-import 'package:projeto_mobile/view/appointment/widgets/tables/AppointmentTable.dart';
+import 'package:projeto_mobile/view/appointment/widgets/list/AppointmentList.dart';
 import 'package:sizer/sizer.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
 
@@ -58,7 +58,7 @@ class AppointmentScreen extends StatelessWidget {
           ),
           SizedBox(height: 10), // Espaçamento entre o botão e a lista
           Expanded(
-            child: AppointmentTable(
+            child: AppointmentList(
               appointments: appointments,
               parentContext: context,
             ),

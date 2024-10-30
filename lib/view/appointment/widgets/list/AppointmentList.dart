@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
 import 'package:projeto_mobile/view/appointment/widgets/dialogs/AppointmentDetailsDialog.dart';
 
-class AppointmentTable extends StatelessWidget {
+class AppointmentList extends StatelessWidget {
   final List<AppointmentModel> appointments;
   final BuildContext parentContext;
 
-  const AppointmentTable({
+  const AppointmentList({
     Key? key,
     required this.appointments,
     required this.parentContext,
