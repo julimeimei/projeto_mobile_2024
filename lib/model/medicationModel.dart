@@ -2,29 +2,33 @@
 class MedicationModel {
   
   bool isActive;
-  String? imageURL;
-  String? userName;
-  String? medicationName;
-  String? adminRoute;
-  String? howToUse;
-  int? usageRange;
-  int? medicationUnits;
-  String? dueDate;
-  List<String>? daysOfWeek;
-  List<DateTime>? medicationTime;
-  String additionalInfo = "";
+  String imageURL;
+  String userName;
+  String medicationName;
+  String adminRoute;
+  String howToUse;
+  int usageRange;
+  int dosage;
+  int usageTimes;
+  int medicationUnits;
+  String dueDate;
+  List<String>daysOfWeek;
+  List<String> medicationTime;
+  String? additionalInfo;
   MedicationModel({
     required this.isActive,
-    this.imageURL,
-    this.userName,
-    this.medicationName,
-    this.adminRoute,
-    this.howToUse,
-    this.usageRange,
-    this.medicationUnits,
-    this.dueDate,
-    this.daysOfWeek,
-    this.medicationTime,
+    required this.imageURL,
+    required this.userName,
+    required this.medicationName,
+    required this.adminRoute,
+    required this.howToUse,
+    required this.usageRange,
+    required this.dosage,
+    required this.usageTimes,
+    required this.medicationUnits,
+    required this.dueDate,
+    required this.daysOfWeek,
+    required this.medicationTime,
     required this.additionalInfo,
   });
 

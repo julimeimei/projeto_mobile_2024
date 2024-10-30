@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_mobile/view/addMedicationScreen.dart';
+import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
+import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:sizer/sizer.dart';
 
 void main() {
@@ -14,8 +15,9 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, screenType) {
-        return const MaterialApp(
+        return MaterialApp(
           home: MainScreen(),
+          debugShowCheckedModeBanner: false,
         );
       },
     );

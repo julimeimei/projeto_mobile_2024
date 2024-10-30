@@ -8,14 +8,15 @@ import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:sizer/sizer.dart';
 
-class AddMedicationScreen extends StatefulWidget {
-  const AddMedicationScreen({super.key});
+class EditMedicationScreen extends StatefulWidget {
+  MedicationModel medicationToEdit;
+  EditMedicationScreen({required this.medicationToEdit, super.key});
 
   @override
-  State<AddMedicationScreen> createState() => _AddMedicationScreenState();
+  State<EditMedicationScreen> createState() => _EditMedicationScreenState();
 }
 
-class _AddMedicationScreenState extends State<AddMedicationScreen> {
+class _EditMedicationScreenState extends State<EditMedicationScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _hourController = TextEditingController();
   final TextEditingController _minuteController = TextEditingController();
@@ -28,6 +29,25 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     _timePickers.add(TimePickerModel());
     _usageRangeController.addListener(_updateTimePickerReadOnly);
     _usageTimesController.addListener(_updateTimePickerReadOnly);
+    _image = File(widget.medicationToEdit.imageURL);
+    _dateController =
+        TextEditingController(text: widget.medicationToEdit.dueDate);
+    _userNameController =
+        TextEditingController(text: widget.medicationToEdit.userName);
+    _medicationNameController =
+        TextEditingController(text: widget.medicationToEdit.medicationName);
+    _adminRouteController =
+        TextEditingController(text: widget.medicationToEdit.adminRoute);
+    _howToUseController =
+        TextEditingController(text: widget.medicationToEdit.howToUse);
+    _usageRangeController = TextEditingController(
+        text: widget.medicationToEdit.usageRange.toString());
+    _dosageController =
+        TextEditingController(text: widget.medicationToEdit.dosage.toString());
+    _medicationUnitsController = TextEditingController(
+        text: widget.medicationToEdit.medicationUnits.toString());
+    _additionalInfoController =
+        TextEditingController(text: widget.medicationToEdit.additionalInfo);
   }
 
   @override
@@ -38,6 +58,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       picker.hourController.dispose();
       picker.minuteController.dispose();
     }
+    _dateController.dispose();
+    _hourController.dispose();
+    _dosageController.dispose();
+    _minuteController.dispose();
+    _howToUseController.dispose();
+    _userNameController.dispose();
+    _adminRouteController.dispose();
+    _usageTimesController.dispose();
+    _additionalInfoController.dispose();
+    _medicationNameController.dispose();
+    _medicationUnitsController.dispose();
     super.dispose();
   }
 
@@ -136,17 +167,13 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   void _calculateMedicationMinutes(int firstMinute) {
     for (int i = 1; i < _timePickers.length; i++) {
-      if (firstMinute >= 0 && firstMinute < 10) {
-        _timePickers[i].minuteController.text = '0$firstMinute';
-      } else {
-        _timePickers[i].minuteController.text = firstMinute.toString();
-      }
+      _timePickers[i].minuteController.text = firstMinute.toString();
     }
   }
 
   DateTime? selectedDate;
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
-  final TextEditingController _dateController = TextEditingController();
+  late TextEditingController _dateController = TextEditingController();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -219,27 +246,27 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   File? _image;
   String? imageUrl;
-  final TextEditingController _userNameController = TextEditingController();
-  final TextEditingController _medicationNameController =
+  late TextEditingController _userNameController = TextEditingController();
+  late TextEditingController _medicationNameController =
       TextEditingController();
   String? adminRoute;
   String? howToUse;
-  final TextEditingController _usageRangeController = TextEditingController();
+  late TextEditingController _usageRangeController = TextEditingController();
 
-  final TextEditingController _medicationUnitsController =
+  late TextEditingController _medicationUnitsController =
       TextEditingController();
 
-  final TextEditingController _dosageController = TextEditingController();
+  late TextEditingController _dosageController = TextEditingController();
   String? dueDate;
   List<String> selectedWeekDays = [];
   List<TimeOfDay> medicationTime = [];
   bool isActive = true;
-  final TextEditingController _additionalInfoController =
+  late TextEditingController _additionalInfoController =
       TextEditingController();
 
-  final TextEditingController _usageTimesController = TextEditingController();
-  final TextEditingController _howToUseController = TextEditingController();
-  final TextEditingController _adminRouteController = TextEditingController();
+  late TextEditingController _usageTimesController = TextEditingController();
+  late TextEditingController _howToUseController = TextEditingController();
+  late TextEditingController _adminRouteController = TextEditingController();
 
   final List<String> adminRouteList = [
     'Oral',
@@ -260,9 +287,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   ];
 
   final List<String> injetavelList = [
-    'Intramuscular',
-    'Intravenosa',
-    'Subcutânea'
+    'Ampola intramuscular',
+    'Ampola intravenosa',
+    'Ampola subcutânea'
   ];
 
   final List<String> nasalList = [
@@ -281,7 +308,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   void selectAdminRoute(value) {
     setState(() {
       adminRoute = value;
-      howToUse = null;
       _howToUseController.clear();
     });
   }
@@ -312,7 +338,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             },
             icon: Icon(Icons.arrow_back)),
         title: const Text(
-          'Adicionando novo medicamento',
+          'Editando medicamento',
           style: TextStyle(fontSize: 20),
         ),
         centerTitle: true,
@@ -398,9 +424,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                             : (howToUse == 'Xarope' ||
                                     howToUse == 'Nebulização')
                                 ? 'Quantos ml para cada aplicação do medicamento?'
-                                : (howToUse == 'Intramuscular' ||
-                                        howToUse == 'Intravenosa' ||
-                                        howToUse == 'Subcutânea')
+                                : (howToUse == 'Ampola intramuscular' ||
+                                        howToUse == 'Ampola intravenosa' ||
+                                        howToUse == 'Ampola subcutânea')
                                     ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
                                     : howToUse == 'Spray'
                                         ? 'Quantas jatos são usados para cada aplicação do medicamento?'
@@ -493,7 +519,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                   'Por favor, selecione os dias da semana.')),
                         );
                       } else {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() &&
+                            adminRoute != null &&
+                            howToUse != null) {
                           try {
                             MedicationModel medication = MedicationModel(
                                 isActive: true,
@@ -513,15 +541,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
-
-                            // Navigator.pushAndRemoveUntil(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) => MainScreen(
-                            //               medication: medication,
-                            //             )),
-                            //     (route) => false);
-                            Navigator.pop(context, medication);
+                            _saveChanges(medication);
                           } catch (e) {
                             print("Error: $e");
                           }
@@ -529,7 +549,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                       }
                     },
                     label: const Text(
-                      'Adicionar',
+                      'Salvar',
                       style: TextStyle(color: Colors.white),
                     ),
                     icon: const Icon(
@@ -549,6 +569,24 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     );
   }
 
+  void _saveChanges(MedicationModel medication) {
+    setState(() {
+      widget.medicationToEdit.daysOfWeek = medication.daysOfWeek;
+      widget.medicationToEdit.medicationTime = medication.medicationTime;
+      widget.medicationToEdit.imageURL = medication.imageURL;
+      widget.medicationToEdit.medicationName = medication.medicationName;
+      widget.medicationToEdit.adminRoute = medication.adminRoute;
+      widget.medicationToEdit.howToUse = medication.howToUse;
+      widget.medicationToEdit.usageRange = medication.usageRange;
+      widget.medicationToEdit.dosage = medication.dosage;
+      widget.medicationToEdit.usageTimes = medication.usageTimes;
+      widget.medicationToEdit.medicationUnits = medication.medicationUnits;
+      widget.medicationToEdit.dueDate = medication.dueDate;
+      widget.medicationToEdit.additionalInfo = medication.additionalInfo;
+    });
+    Navigator.pop(context, widget.medicationToEdit);
+  }
+
   Widget _buildTextField(TextEditingController controller, String labelText,
       String helpText, String errorMessage,
       {bool isNumber = false,
@@ -564,10 +602,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             controller: controller,
             keyboardType: isNumber ? TextInputType.number : TextInputType.text,
             decoration: InputDecoration(
-              labelText: labelText,
               labelStyle: TextStyle(color: Colors.black),
               focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.blue[600]!)),
+              labelText: labelText,
               border: OutlineInputBorder(),
             ),
             autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -586,7 +624,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             children: [
               Expanded(
                 child: Text(
-                  style: TextStyle(fontWeight: FontWeight.bold),
                   helpText,
                 ),
               ),
@@ -625,7 +662,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               setState(() {
                 if (isAdminRoute) {
                   adminRoute = newValue;
-                  howToUse = null;
                   _adminRouteError = null;
                 } else if (isHowToUse) {
                   howToUse = newValue;
@@ -640,13 +676,14 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           Row(
             children: [
               Expanded(
-                  child: Text(
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                      isAdminRoute
-                          ? 'Qual a via de administração do medicamento?'
-                          : isHowToUse
-                              ? 'Qual a forma de usar o medicamento?'
-                              : '')),
+                child: Text(
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    isAdminRoute
+                        ? 'Qual a via de administração do medicamento?'
+                        : isHowToUse
+                            ? 'Qual a forma de usar o medicamento?'
+                            : ''),
+              ),
             ],
           )
         ],
