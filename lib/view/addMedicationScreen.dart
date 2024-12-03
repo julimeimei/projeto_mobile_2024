@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/timePickerModel.dart';
+import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class AddMedicationScreen extends StatefulWidget {
@@ -521,6 +523,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                             //               medication: medication,
                             //             )),
                             //     (route) => false);
+                            context.read<HistoryMedicationProvider>().addHistoryMedication(medication);
                             Navigator.pop(context, medication);
                           } catch (e) {
                             print("Error: $e");

@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
+import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:projeto_mobile/view/medicationHistoryScreen.dart';
+import 'package:provider/provider.dart';
 
 class HistoryScreen extends StatefulWidget {
   final List<MedicationModel> medicationHistory;
@@ -132,57 +134,90 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
-      body: ListView.builder(
-        itemCount: widget.medicationHistory.length,
-        itemBuilder: (context, index) {
-          final medication = widget.medicationHistory[index];
-          final isSelected = selectedItems.contains(medication);
-          return ListTile(
-            leading: medication.imageURL.isNotEmpty
-                ? ClipOval(
-                    child: Image.file(
-                      File(medication.imageURL),
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : const Icon(Icons.medication),
-            title: Text(medication.medicationName),
-            trailing: isSelectionMode
-                ? Checkbox(
-                    value: isSelected,
-                    onChanged: (value) {
-                      setState(() {
-                        isSelected
-                            ? selectedItems.remove(medication)
-                            : selectedItems.add(medication);
-                      });
-                    },
-                  )
-                : null,
-            onTap: () {
-              if (isSelectionMode) {
-                setState(() {
-                  isSelected
-                      ? selectedItems.remove(medication)
-                      : selectedItems.add(medication);
-                });
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MedicationHistoryScreen(
-                      medication: medication,
-                    ),
+      body: Consumer<HistoryMedicationProvider>(
+        builder: (context, historyProvider, _) {
+          final medicationsPerDate = historyProvider.medicationsPerDate;
+
+          if (medicationsPerDate.isEmpty) {
+            return Center(child: Text("Nenhum medicamento adicionado ainda."));
+          }
+
+          return ListView(
+            children: medicationsPerDate.keys.map((data) {
+              final medications = medicationsPerDate[data]!;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(data,
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                );
-              }
-            },
-            onLongPress: toggleSelectionMode,
+                  ...medications.map((medication) {
+                    return ListTile(
+                      title: Text(medication.medicationName),
+                      subtitle:
+                          Text(historyProvider.formatDate(medication.addDate)),
+                    );
+                  }).toList(),
+                ],
+              );
+            }).toList(),
           );
         },
       ),
+      // ListView.builder(
+      //   itemCount: widget.medicationHistory.length,
+      //   itemBuilder: (context, index) {
+      //     final medication = widget.medicationHistory[index];
+      //     final isSelected = selectedItems.contains(medication);
+      //     return ListTile(
+      //       leading: medication.imageURL.isNotEmpty
+      //           ? ClipOval(
+      //               child: Image.file(
+      //                 File(medication.imageURL),
+      //                 width: 50,
+      //                 height: 50,
+      //                 fit: BoxFit.cover,
+      //               ),
+      //             )
+      //           : const Icon(Icons.medication),
+      //       title: Text(medication.medicationName),
+      //       trailing: isSelectionMode
+      //           ? Checkbox(
+      //               value: isSelected,
+      //               onChanged: (value) {
+      //                 setState(() {
+      //                   isSelected
+      //                       ? selectedItems.remove(medication)
+      //                       : selectedItems.add(medication);
+      //                 });
+      //               },
+      //             )
+      //           : null,
+      //       onTap: () {
+      //         if (isSelectionMode) {
+      //           setState(() {
+      //             isSelected
+      //                 ? selectedItems.remove(medication)
+      //                 : selectedItems.add(medication);
+      //           });
+      //         } else {
+      //           Navigator.push(
+      //             context,
+      //             MaterialPageRoute(
+      //               builder: (context) => MedicationHistoryScreen(
+      //                 medication: medication,
+      //               ),
+      //             ),
+      //           );
+      //         }
+      //       },
+      //       onLongPress: toggleSelectionMode,
+      //     );
+      //   },
+      // ),
     );
   }
 }
