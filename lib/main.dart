@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
@@ -7,8 +8,11 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => HistoryMedicationProvider(),
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => HistoryMedicationProvider()),
+      ChangeNotifierProvider(create: (context) => MedicationProvider())
+    ],
     child: MainApp(),
   ));
 }

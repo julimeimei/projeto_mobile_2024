@@ -390,9 +390,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                                 : adminRoute == 'Retal'
                                                     ? retalList
                                                     : oralList,
-                    isHowToUse: true),
-                (howToUse != 'Pomada' && howToUse != 'Creme')
-                    ? _buildTextField(
+                    isHowToUse: true),_buildTextField(
                         _dosageController,
                         'Dosagem',
                         howToUse == 'Comprimido'
@@ -412,11 +410,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                                 ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
                                                 : howToUse == 'Supositório'
                                                     ? 'Quantos supositórios são usados em cada aplicação?'
+                                                    
                                                     : 'Qual a dosagem do medicamento em cada aplicação?',
                         'Por favor, informe a dosagem do medicamento',
                         isNumber: true,
-                      )
-                    : const SizedBox.shrink(),
+                      ),
                 _buildTextField(
                     _usageTimesController,
                     'Vezes ao dia',
@@ -523,7 +521,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                             //               medication: medication,
                             //             )),
                             //     (route) => false);
-                            context.read<HistoryMedicationProvider>().addHistoryMedication(medication);
+                            context
+                                .read<HistoryMedicationProvider>()
+                                .addHistoryMedication(medication.copy());
                             Navigator.pop(context, medication);
                           } catch (e) {
                             print("Error: $e");

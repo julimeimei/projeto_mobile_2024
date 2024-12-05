@@ -3,10 +3,21 @@ import 'package:projeto_mobile/model/medicationModel.dart';
 
 class HistoryMedicationProvider with ChangeNotifier{
   final List<MedicationModel> _historyMedication = [];
+  MedicationModel? _selectedMedication;
   
   List<MedicationModel> get historyMedication => _historyMedication;
 
-  void addHistoryMedication(MedicationModel medication){
+  // Retorna medicamento selecionado
+  MedicationModel? get selectedMedication => _selectedMedication;
+
+  // Define o medicamento selecionado
+  void selectMedication(MedicationModel medication) {
+    _selectedMedication = medication;
+    notifyListeners();
+  }
+
+  void addHistoryMedication(MedicationModel medication, {String action = 'Adicionado'}){
+    medication.action = action;
     _historyMedication.add(medication);
     notifyListeners();
   }

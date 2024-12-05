@@ -2,15 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:projeto_mobile/main.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/timePickerModel.dart';
+import 'package:projeto_mobile/provider/historyMedProvider.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class EditMedicationScreen extends StatefulWidget {
-  MedicationModel medicationToEdit;
-  EditMedicationScreen({required this.medicationToEdit, super.key});
+  EditMedicationScreen({super.key});
 
   @override
   State<EditMedicationScreen> createState() => _EditMedicationScreenState();
@@ -29,25 +32,30 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     _timePickers.add(TimePickerModel());
     _usageRangeController.addListener(_updateTimePickerReadOnly);
     _usageTimesController.addListener(_updateTimePickerReadOnly);
-    _image = File(widget.medicationToEdit.imageURL);
-    _dateController =
-        TextEditingController(text: widget.medicationToEdit.dueDate);
-    _userNameController =
-        TextEditingController(text: widget.medicationToEdit.userName);
-    _medicationNameController =
-        TextEditingController(text: widget.medicationToEdit.medicationName);
-    _adminRouteController =
-        TextEditingController(text: widget.medicationToEdit.adminRoute);
-    _howToUseController =
-        TextEditingController(text: widget.medicationToEdit.howToUse);
-    _usageRangeController = TextEditingController(
-        text: widget.medicationToEdit.usageRange.toString());
-    _dosageController =
-        TextEditingController(text: widget.medicationToEdit.dosage.toString());
-    _medicationUnitsController = TextEditingController(
-        text: widget.medicationToEdit.medicationUnits.toString());
-    _additionalInfoController =
-        TextEditingController(text: widget.medicationToEdit.additionalInfo);
+
+    final medicationToEdit =
+        context.read<MedicationProvider>().selectedMedication;
+
+    if (medicationToEdit != null) {
+      _image = File(medicationToEdit.imageURL);
+      _dateController = TextEditingController(text: medicationToEdit.dueDate);
+      _userNameController =
+          TextEditingController(text: medicationToEdit.userName);
+      _medicationNameController =
+          TextEditingController(text: medicationToEdit.medicationName);
+      _adminRouteController =
+          TextEditingController(text: medicationToEdit.adminRoute);
+      _howToUseController =
+          TextEditingController(text: medicationToEdit.howToUse);
+      _usageRangeController =
+          TextEditingController(text: medicationToEdit.usageRange.toString());
+      _dosageController =
+          TextEditingController(text: medicationToEdit.dosage.toString());
+      _medicationUnitsController = TextEditingController(
+          text: medicationToEdit.medicationUnits.toString());
+      _additionalInfoController =
+          TextEditingController(text: medicationToEdit.additionalInfo);
+    }
   }
 
   @override
@@ -167,7 +175,11 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
 
   void _calculateMedicationMinutes(int firstMinute) {
     for (int i = 1; i < _timePickers.length; i++) {
-      _timePickers[i].minuteController.text = firstMinute.toString();
+      if (firstMinute >= 0 && firstMinute < 10) {
+        _timePickers[i].minuteController.text = '0$firstMinute';
+      } else {
+        _timePickers[i].minuteController.text = firstMinute.toString();
+      }
     }
   }
 
@@ -415,32 +427,29 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                                     ? retalList
                                                     : oralList,
                     isHowToUse: true),
-                (howToUse != 'Pomada' && howToUse != 'Creme')
-                    ? _buildTextField(
-                        _dosageController,
-                        'Dosagem',
-                        howToUse == 'Comprimido'
-                            ? 'Quantos comprimidos são usados em cada aplicação do medicamento?'
-                            : (howToUse == 'Xarope' ||
-                                    howToUse == 'Nebulização')
-                                ? 'Quantos ml para cada aplicação do medicamento?'
-                                : (howToUse == 'Ampola intramuscular' ||
-                                        howToUse == 'Ampola intravenosa' ||
-                                        howToUse == 'Ampola subcutânea')
-                                    ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
-                                    : howToUse == 'Spray'
-                                        ? 'Quantas jatos são usados para cada aplicação do medicamento?'
-                                        : howToUse == 'Bombinha'
-                                            ? 'Quantos puffs são usados em cada aplicação?'
-                                            : howToUse == 'Gotas'
-                                                ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
-                                                : howToUse == 'Supositório'
-                                                    ? 'Quantos supositórios são usados em cada aplicação?'
-                                                    : 'Qual a dosagem do medicamento em cada aplicação?',
-                        'Por favor, informe a dosagem do medicamento',
-                        isNumber: true,
-                      )
-                    : const SizedBox.shrink(),
+                _buildTextField(
+                  _dosageController,
+                  'Dosagem',
+                  howToUse == 'Comprimido'
+                      ? 'Quantos comprimidos são usados em cada aplicação do medicamento?'
+                      : (howToUse == 'Xarope' || howToUse == 'Nebulização')
+                          ? 'Quantos ml para cada aplicação do medicamento?'
+                          : (howToUse == 'Ampola intramuscular' ||
+                                  howToUse == 'Ampola intravenosa' ||
+                                  howToUse == 'Ampola subcutânea')
+                              ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
+                              : howToUse == 'Spray'
+                                  ? 'Quantas jatos são usados para cada aplicação do medicamento?'
+                                  : howToUse == 'Bombinha'
+                                      ? 'Quantos puffs são usados em cada aplicação?'
+                                      : howToUse == 'Gotas'
+                                          ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
+                                          : howToUse == 'Supositório'
+                                              ? 'Quantos supositórios são usados em cada aplicação?'
+                                              : 'Qual a dosagem do medicamento em cada aplicação?',
+                  'Por favor, informe a dosagem do medicamento',
+                  isNumber: true,
+                ),
                 _buildTextField(
                     _usageTimesController,
                     'Vezes ao dia',
@@ -523,7 +532,12 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                             adminRoute != null &&
                             howToUse != null) {
                           try {
+                            final medicationProvider =
+                                context.read<MedicationProvider>();
+                            final medicationToEdit =
+                                medicationProvider.selectedMedication;
                             MedicationModel medication = MedicationModel(
+                                id: medicationToEdit?.id,
                                 isActive: true,
                                 imageURL: imageUrl!,
                                 userName: _userNameController.text,
@@ -541,7 +555,15 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
-                            _saveChanges(medication);
+                            context
+                                .read<MedicationProvider>()
+                                .editMedication(medication);
+                            context
+                                .read<HistoryMedicationProvider>()
+                                .addHistoryMedication(medication,
+                                    action: 'Editado');
+                            Navigator.pop(context);
+                            //_saveChanges(medication);
                           } catch (e) {
                             print("Error: $e");
                           }
@@ -569,23 +591,30 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     );
   }
 
-  void _saveChanges(MedicationModel medication) {
-    setState(() {
-      widget.medicationToEdit.daysOfWeek = medication.daysOfWeek;
-      widget.medicationToEdit.medicationTime = medication.medicationTime;
-      widget.medicationToEdit.imageURL = medication.imageURL;
-      widget.medicationToEdit.medicationName = medication.medicationName;
-      widget.medicationToEdit.adminRoute = medication.adminRoute;
-      widget.medicationToEdit.howToUse = medication.howToUse;
-      widget.medicationToEdit.usageRange = medication.usageRange;
-      widget.medicationToEdit.dosage = medication.dosage;
-      widget.medicationToEdit.usageTimes = medication.usageTimes;
-      widget.medicationToEdit.medicationUnits = medication.medicationUnits;
-      widget.medicationToEdit.dueDate = medication.dueDate;
-      widget.medicationToEdit.additionalInfo = medication.additionalInfo;
-    });
-    Navigator.pop(context, widget.medicationToEdit);
-  }
+  // void _saveChanges(MedicationModel medication) {
+  //   final medicationProvider = context.read<MedicationProvider>();
+  //   final medicationToEdit = medicationProvider.selectedMedication;
+  //     medicationToEdit.id = medicationToEdit.id;
+  //     medicationToEdit.userName = medication.userName;
+  //     medicationToEdit.daysOfWeek = medication.daysOfWeek;
+  //     medicationToEdit.medicationTime = medication.medicationTime;
+  //     medicationToEdit.imageURL = medication.imageURL;
+  //     medicationToEdit.medicationName = medication.medicationName;
+  //     medicationToEdit.adminRoute = medication.adminRoute;
+  //     medicationToEdit.howToUse = medication.howToUse;
+  //     medicationToEdit.usageRange = medication.usageRange;
+  //     medicationToEdit.dosage = medication.dosage;
+  //     medicationToEdit.usageTimes = medication.usageTimes;
+  //     medicationToEdit.medicationUnits = medication.medicationUnits;
+  //     medicationToEdit.dueDate = medication.dueDate;
+  //     medicationToEdit.additionalInfo = medication.additionalInfo;
+
+  //   context.read<MedicationProvider>().editMedication(medication);
+  //   context
+  //       .read<HistoryMedicationProvider>()
+  //       .addHistoryMedication(medication, action: 'Editado');
+  //   Navigator.pop(context, medicationToEdit);
+  // }
 
   Widget _buildTextField(TextEditingController controller, String labelText,
       String helpText, String errorMessage,
@@ -662,6 +691,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
               setState(() {
                 if (isAdminRoute) {
                   adminRoute = newValue;
+                  howToUse = null;
                   _adminRouteError = null;
                 } else if (isHowToUse) {
                   howToUse = newValue;

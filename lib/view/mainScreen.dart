@@ -91,7 +91,8 @@ class _MainScreenState extends State<MainScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HistoryScreen(medicationHistory: medicationHistory),
+                      builder: (context) =>
+                          HistoryScreen(medicationHistory: medicationHistory),
                     ),
                   );
                 },
@@ -102,14 +103,14 @@ class _MainScreenState extends State<MainScreen> {
         body: TabBarView(
           children: [
             MedicationScreen(
-              medications: medications,
-              onMedicationAdded: (medication) {
-                setState(() {
-                  medications.add(medication);
-                });
-                addMedicationToHistory(medication);
-              },
-            ),
+                // medications: medications,
+                // onMedicationAdded: (medication) {
+                //   setState(() {
+                //     medications.add(medication);
+                //   });
+                //   addMedicationToHistory(medication);
+                // },
+                ),
             AppointmentScreen(
               appointments: appointments,
               onAppointmentAdded: addAppointment,

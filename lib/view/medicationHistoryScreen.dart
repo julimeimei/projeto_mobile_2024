@@ -1,21 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'dart:io';
-import 'package:intl/intl.dart';
-import 'package:projeto_mobile/view/editMedicationScreen.dart';
-import 'package:sizer/sizer.dart';
 
-class MedicationHistoryScreen extends StatefulWidget {
-  MedicationModel medication;
+import 'package:projeto_mobile/provider/historyMedProvider.dart';
+import 'package:provider/provider.dart';
 
-  MedicationHistoryScreen({required this.medication, super.key});
+class MedicationHistoryScreen extends StatelessWidget {
+  MedicationHistoryScreen({super.key});
 
-  @override
-  State<MedicationHistoryScreen> createState() =>
-      _MedicationHistoryScreenState();
-}
-
-class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,45 +26,65 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
         centerTitle: true,
       ),
       backgroundColor: Color.fromARGB(255, 244, 244, 244),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Center(
-                child: ClipOval(
-                  child: Image.file(
-                    File(widget.medication!.imageURL),
-                    width: 200,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+      body: Consumer<HistoryMedicationProvider>(
+        builder: (context, historyProvider, _) {
+          final medication = historyProvider.selectedMedication;
+
+          if (medication == null) {
+            return Center(
+              child: Text(
+                "Medicamento não encontrado.",
+                style: TextStyle(fontSize: 18, color: Colors.red),
               ),
-              SizedBox(height: 16),
-              _buildDetailRow('Nome', widget.medication!.userName),
-              _buildDetailRow('Medicamento', widget.medication!.medicationName),
-              _buildDetailRow(
-                  'Via de administração', widget.medication!.adminRoute),
-              _buildDetailRow('Como usar', widget.medication!.howToUse),
-              _buildDetailRow(
-                  'Dosagem', '${widget.medication!.dosage} unidades'),
-              _buildDetailRow(
-                  'Vezes ao dia', '${widget.medication!.usageTimes} vezes'),
-              _buildDetailRow(
-                  'Intervalo de uso', '${widget.medication!.usageRange} horas'),
-              _buildDetailRow('Unidades do medicamento',
-                  '${widget.medication!.medicationUnits} unidades'),
-              _buildDetailRow('Data de vencimento', widget.medication!.dueDate),
-              _buildDetailRow(
-                  'Dias de uso', widget.medication!.daysOfWeek.join(", ")),
-              _buildDetailRow('Horários de uso',
-                  widget.medication!.medicationTime.join(", ")),
-              _buildDetailRow(
-                  'Informações adicionais', widget.medication!.additionalInfo!),
-            ],
-          ),
-        ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Center(
+                    child: ClipOval(
+                      child: medication.imageURL.isNotEmpty
+                          ? Image.file(
+                              File(medication.imageURL),
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(
+                              Icons.medication,
+                              size: 100,
+                              color: Colors.grey,
+                            ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildDetailRow('Nome', medication.userName),
+                  _buildDetailRow('Medicamento', medication.medicationName),
+                  _buildDetailRow(
+                      'Via de administração', medication.adminRoute),
+                  _buildDetailRow('Como usar', medication.howToUse),
+                  _buildDetailRow('Dosagem', '${medication.dosage} unidades'),
+                  _buildDetailRow(
+                      'Vezes ao dia', '${medication.usageTimes} vezes'),
+                  _buildDetailRow(
+                      'Intervalo de uso', '${medication.usageRange} horas'),
+                  _buildDetailRow('Unidades do medicamento',
+                      '${medication.medicationUnits} unidades'),
+                  _buildDetailRow('Data de vencimento', medication.dueDate),
+                  _buildDetailRow(
+                      'Dias de uso', medication.daysOfWeek.join(", ")),
+                  _buildDetailRow(
+                      'Horários de uso', medication.medicationTime.join(", ")),
+                  _buildDetailRow('Informações adicionais',
+                      medication.additionalInfo ?? "Nenhuma"),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
