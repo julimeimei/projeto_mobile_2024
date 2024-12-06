@@ -1,13 +1,20 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:projeto_mobile/firebase_options.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
+import 'package:projeto_mobile/view/authScreens/signInLogicScreen.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-void main() {
+Future main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => HistoryMedicationProvider()),
@@ -25,7 +32,7 @@ class MainApp extends StatelessWidget {
     return Sizer(
       builder: (context, orientation, screenType) {
         return MaterialApp(
-          home: MainScreen(),
+          home: SignInLogicScreen(),
           debugShowCheckedModeBanner: false,
         );
       },
