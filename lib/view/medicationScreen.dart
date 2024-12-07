@@ -73,13 +73,23 @@ class _MedicationScreenState extends State<MedicationScreen> {
     final historyProvider =
         Provider.of<HistoryMedicationProvider>(context, listen: false);
     for (var medication in selectedMedications) {
-      historyProvider.addHistoryMedication(medication, action: 'Removido');
+      historyProvider.addHistoryMedication(medication.copy(),
+          action: "Removido");
       provider.removeMedication(medication);
     }
     setState(() {
       selectedMedications.clear();
       isSelectionMode = false;
     });
+  }
+
+  @override
+  void initState() {
+    Future.microtask(() {
+      Provider.of<MedicationProvider>(context, listen: false)
+          .fetchMedications();
+    });
+    super.initState();
   }
 
   @override
@@ -189,7 +199,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                               );
                             },
                           ),
-                    onTap: ()  {
+                    onTap: () {
                       if (isSelectionMode) {
                         setState(() {
                           isSelected
@@ -198,7 +208,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         });
                       } else {
                         // Define o medicamento selecionado no provider
-    context.read<MedicationProvider>().selectMedication(medication);
+                        context
+                            .read<MedicationProvider>()
+                            .selectMedication(medication);
                         Navigator.push(
                           context,
                           MaterialPageRoute(

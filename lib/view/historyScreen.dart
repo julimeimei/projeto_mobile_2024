@@ -80,6 +80,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<HistoryMedicationProvider>(context, listen: false)
+          .fetchHistoryMedications();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: isSelectionMode
@@ -139,8 +148,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
         builder: (context, historyProvider, _) {
           final medicationsPerDate = historyProvider.medicationsPerDate;
 
+          // if (medicationsPerDate.isEmpty) {
+          //   return Center(child: Text("Nenhum medicamento adicionado ainda."));
+          // }
           if (medicationsPerDate.isEmpty) {
-            return Center(child: Text("Nenhum medicamento adicionado ainda."));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.medication_outlined,
+                      size: 100, color: Colors.grey),
+                  Text(
+                    "Nenhum medicamento no histórico",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView(
@@ -163,6 +187,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     itemBuilder: (context, index) {
                       final medicamento = medicamentos[index];
                       final isSelected = selectedItems.contains(medicamento);
+                      print(medicamento.action);
                       return ListTile(
                         leading: medicamento.imageURL.isNotEmpty
                             ? ClipOval(
@@ -175,6 +200,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               )
                             : const Icon(Icons.medication),
                         title: Text(medicamento.medicationName),
+                        subtitle: Text(
+                          "${medicamento.action} às ${medicamento.addDate.hour.toString().padLeft(2, '0')}:${medicamento.addDate.minute.toString().padLeft(2, '0')}.",
+                        ),
                         trailing: isSelectionMode
                             ? Checkbox(
                                 value: isSelected,
@@ -190,16 +218,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                    color: _getActionColor(medicamento.action!)
+                                    color: _getActionColor(medicamento.action ??
+                                            'Indefinido') // Use null-aware operator
                                         .withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(14)),
                                 child: Text(
-                                  medicamento.action!,
+                                  medicamento.action ??
+                                      'Indefinido', // Provide a default value
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 14,
-                                      color:
-                                          _getActionColor(medicamento.action!)),
+                                      color: _getActionColor(
+                                          medicamento.action ??
+                                              'Indefinido')), // Same here
                                 ),
                               ),
                         onTap: () {
@@ -211,13 +242,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             });
                           } else {
                             // Define o medicamento selecionado no provider
-    context.read<HistoryMedicationProvider>().selectMedication(medicamento);
+                            context
+                                .read<HistoryMedicationProvider>()
+                                .selectMedication(medicamento);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MedicationHistoryScreen(
-                                 
-                                ),
+                                builder: (context) => MedicationHistoryScreen(),
                               ),
                             );
                           }
@@ -237,11 +268,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Color _getActionColor(String action) {
     switch (action) {
-      case 'Adicionado':
+      case "Adicionado":
         return Colors.green;
-      case 'Editado':
+      case "Editado":
         return Colors.orange;
-      case 'Removido':
+      case "Removido":
         return Colors.red;
       default:
         return Colors.grey;

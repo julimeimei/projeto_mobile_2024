@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/timePickerModel.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:provider/provider.dart';
@@ -390,31 +391,30 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                                 : adminRoute == 'Retal'
                                                     ? retalList
                                                     : oralList,
-                    isHowToUse: true),_buildTextField(
-                        _dosageController,
-                        'Dosagem',
-                        howToUse == 'Comprimido'
-                            ? 'Quantos comprimidos são usados em cada aplicação do medicamento?'
-                            : (howToUse == 'Xarope' ||
-                                    howToUse == 'Nebulização')
-                                ? 'Quantos ml para cada aplicação do medicamento?'
-                                : (howToUse == 'Intramuscular' ||
-                                        howToUse == 'Intravenosa' ||
-                                        howToUse == 'Subcutânea')
-                                    ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
-                                    : howToUse == 'Spray'
-                                        ? 'Quantas jatos são usados para cada aplicação do medicamento?'
-                                        : howToUse == 'Bombinha'
-                                            ? 'Quantos puffs são usados em cada aplicação?'
-                                            : howToUse == 'Gotas'
-                                                ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
-                                                : howToUse == 'Supositório'
-                                                    ? 'Quantos supositórios são usados em cada aplicação?'
-                                                    
-                                                    : 'Qual a dosagem do medicamento em cada aplicação?',
-                        'Por favor, informe a dosagem do medicamento',
-                        isNumber: true,
-                      ),
+                    isHowToUse: true),
+                _buildTextField(
+                  _dosageController,
+                  'Dosagem',
+                  howToUse == 'Comprimido'
+                      ? 'Quantos comprimidos são usados em cada aplicação do medicamento?'
+                      : (howToUse == 'Xarope' || howToUse == 'Nebulização')
+                          ? 'Quantos ml para cada aplicação do medicamento?'
+                          : (howToUse == 'Intramuscular' ||
+                                  howToUse == 'Intravenosa' ||
+                                  howToUse == 'Subcutânea')
+                              ? 'Quantas ampolas são usadas em cada aplicação do medicamento?'
+                              : howToUse == 'Spray'
+                                  ? 'Quantas jatos são usados para cada aplicação do medicamento?'
+                                  : howToUse == 'Bombinha'
+                                      ? 'Quantos puffs são usados em cada aplicação?'
+                                      : howToUse == 'Gotas'
+                                          ? 'Quantas gotas são usadas em cada aplicação do medicamento?'
+                                          : howToUse == 'Supositório'
+                                              ? 'Quantos supositórios são usados em cada aplicação?'
+                                              : 'Qual a dosagem do medicamento em cada aplicação?',
+                  'Por favor, informe a dosagem do medicamento',
+                  isNumber: true,
+                ),
                 _buildTextField(
                     _usageTimesController,
                     'Vezes ao dia',
@@ -495,7 +495,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                       } else {
                         if (_formKey.currentState!.validate()) {
                           try {
-                            MedicationModel medication = MedicationModel(
+                            MedicationModel medication = MedicationModel(action: "Adicionado",
                                 isActive: true,
                                 imageURL: imageUrl!,
                                 userName: _userNameController.text,
@@ -513,6 +513,13 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
+                            final provider = Provider.of<MedicationProvider>(
+                                context,
+                                listen: false);
+                            provider.addMedication(medication);
+
+                            final historyProvider = Provider.of<HistoryMedicationProvider>(context, listen: false);
+                            historyProvider.addHistoryMedication(medication.copy(), action: "Adicionado");
 
                             // Navigator.pushAndRemoveUntil(
                             //     context,
@@ -521,10 +528,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                             //               medication: medication,
                             //             )),
                             //     (route) => false);
-                            context
-                                .read<HistoryMedicationProvider>()
-                                .addHistoryMedication(medication.copy());
-                            Navigator.pop(context, medication);
+                            // context
+                            //     .read<HistoryMedicationProvider>()
+                            //     .addHistoryMedication(medication.copy());
+                            Navigator.pop(context);
                           } catch (e) {
                             print("Error: $e");
                           }

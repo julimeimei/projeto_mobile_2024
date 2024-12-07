@@ -536,7 +536,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                 context.read<MedicationProvider>();
                             final medicationToEdit =
                                 medicationProvider.selectedMedication;
-                            MedicationModel medication = MedicationModel(
+                            MedicationModel medication = MedicationModel(action: "Editado",
                                 id: medicationToEdit?.id,
                                 isActive: true,
                                 imageURL: imageUrl!,
@@ -555,13 +555,16 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
-                            context
-                                .read<MedicationProvider>()
-                                .editMedication(medication);
-                            context
-                                .read<HistoryMedicationProvider>()
-                                .addHistoryMedication(medication,
-                                    action: 'Editado');
+                            final provider = Provider.of<MedicationProvider>(
+                                context,
+                                listen: false);
+                            provider.editMedication(medication);
+
+                            final historyProvider =
+                                Provider.of<HistoryMedicationProvider>(context,
+                                    listen: false);
+                            historyProvider.addHistoryMedication(medication.copy(),
+                                action: "Editado");
                             Navigator.pop(context);
                             //_saveChanges(medication);
                           } catch (e) {
