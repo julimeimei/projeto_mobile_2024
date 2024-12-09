@@ -49,6 +49,8 @@ class HistoryMedicationProvider with ChangeNotifier {
   // Busca o histórico de medicamentos do Firebase
   Future<void> fetchHistoryMedications() async {
     try {
+      _historyMedication.clear();
+      notifyListeners();
       String? userId = FirebaseAuth.instance.currentUser?.uid;
 
       if (userId == null) {
