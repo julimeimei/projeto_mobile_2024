@@ -57,7 +57,7 @@ class AuthServices {
       } else {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const Register()),
+            MaterialPageRoute(builder: (context) => const RegisterScreen()),
             (route) => false);
       }
     } else {

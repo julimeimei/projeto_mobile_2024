@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
+import 'package:projeto_mobile/model/userModel.dart';
+import 'package:projeto_mobile/services/authService.dart';
+import 'package:projeto_mobile/services/profileService.dart';
 import 'package:projeto_mobile/view/appointment/appointmentScreen.dart';
+import 'package:projeto_mobile/view/authScreens/loginScreen.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:projeto_mobile/view/taskScreen.dart';
@@ -26,13 +31,97 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          actions: [
+            FutureBuilder<UserModel>(
+              future: ProfileService.fetchUserData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 16),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 16),
+                    child: Text(
+                      'Erro',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                } else {
+                  String userName = snapshot.data!.userName.toString();
+                  return Row(
+                    children: [
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.arrow_drop_down,
+                            size: 35, color: Colors.white),
+                        onSelected: (value) {
+                          if (value == 'logout') {
+                            AuthServices.signOut();
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginScreen()),
+                                (route) => false);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                          const PopupMenuItem<String>(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.exit_to_app, color: Colors.black),
+                                SizedBox(width: 8),
+                                Text('Sair'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
           backgroundColor: Colors.blue[400],
-          title: const Text('Remanegy'),
+          // title: Image.asset(
+          //   'images/remanegy-high-resolution-logo-transparent-black.png',
+          //   height: 30,
+          // ),
+          title: Text(
+            'Remanegy', 
+            style: GoogleFonts.baumans(
+              textStyle: const TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           centerTitle: true,
           bottom: const TabBar(
             indicatorColor: Colors.white,
@@ -58,13 +147,13 @@ class _MainScreenState extends State<MainScreen> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const DrawerHeader(
+              DrawerHeader(
                 decoration: BoxDecoration(
                   color: Colors.blue,
                 ),
-                child: Text(
-                  'Remanegy',
-                  style: TextStyle(fontSize: 30, color: Colors.black),
+                child: Image.asset(
+                  'images/remanegy-high-resolution-logo-transparent.png',
+                  height: 30,
                 ),
               ),
               ListTile(

@@ -119,13 +119,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text(
-                'Remanegy',
-                style: TextStyle(fontSize: 30, color: Colors.black),
+              child: Image.asset(
+                'images/remanegy-high-resolution-logo-transparent.png',
+                height: 30,
               ),
             ),
             ListTile(

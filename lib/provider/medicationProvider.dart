@@ -38,32 +38,12 @@ class MedicationProvider with ChangeNotifier {
     }
   }
 
-  // Busca medicamentos do Firebase no caminho "Users/user.id/Medications"
-  // Future<void> fetchMedications() async {
-  //   try {
-  //     // Obtém o ID do usuário autenticado
-  //     String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-  //     if (userId != null) {
-  //       final snapshot = await _dbRef.child('$userId/Medications').get();
-
-  //       if (snapshot.exists) {
-  //         final medicationsMap =
-  //             Map<String, dynamic>.from(snapshot.value as Map);
-  //         _medications.clear();
-  //         medicationsMap.forEach((key, value) {
-  //           _medications.add(MedicationModel.fromMap(value));
-  //         });
-  //         notifyListeners();
-  //       }
-  //     }
-  //   } catch (error) {
-  //     debugPrint('Erro ao buscar medicamentos: $error');
-  //   }
-  // }
+  
 
   Future<void> fetchMedications() async {
   try {
+    _medications.clear();
+    notifyListeners();
     // Obtém o ID do usuário autenticado
     String? userId = FirebaseAuth.instance.currentUser?.uid;
 
