@@ -1,9 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:projeto_mobile/provider/appointment/AppointmentProvider.dart';
+import 'package:provider/provider.dart';
+import 'package:projeto_mobile/model/appointmentModel.dart';
+import 'package:fluttertoast/fluttertoast.dart'; // Importar o Fluttertoast
 
 class AddMedicalCheckForm extends StatefulWidget {
-  final Function(String, String, String, String, DateTime, TimeOfDay, String) onSubmit;
+  final String? initialDoctorName;
+  final String? initialSpecialty;
+  final String? initialLocation;
 
-  const AddMedicalCheckForm({super.key, required this.onSubmit});
+  const AddMedicalCheckForm({
+    super.key,
+    this.initialDoctorName,
+    this.initialSpecialty,
+    this.initialLocation,
+  });
 
   @override
   _AddMedicalCheckFormState createState() => _AddMedicalCheckFormState();
@@ -12,13 +25,8 @@ class AddMedicalCheckForm extends StatefulWidget {
 class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
   final _formKey = GlobalKey<FormState>();
 
-  String patientName = '';
-  String specialty = '';
-  String doctorName = '';
-  String location = '';
   DateTime? date;
   TimeOfDay? time;
-  String additionalInfo = '';
 
   Future<void> _selectDate(BuildContext context) async {
     final pickedDate = await showDatePicker(
@@ -46,6 +54,53 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
     }
   }
 
+  Future<String> _fetchUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final snapshot = await FirebaseDatabase.instance.ref('Users/${user?.uid}').get();
+    if (snapshot.exists) {
+      final data = snapshot.value as Map;
+      return data['userName'] ?? '';
+    }
+    return '';
+  }
+
+  Future<void> _submitForm(BuildContext context) async {
+    if (date != null && time != null) {
+      final user = FirebaseAuth.instance.currentUser;
+      final userName = await _fetchUserName();
+
+      final appointment = AppointmentModel(
+        patientName: userName,
+        specialty: widget.initialSpecialty ?? '',
+        doctorName: widget.initialDoctorName ?? '',
+        location: widget.initialLocation ?? '',
+        date: date!,
+        time: time!,
+        additionalInfo: '',
+      );
+
+      Provider.of<AppointmentProvider>(context, listen: false).addAppointment(appointment);
+
+      // Exibe o toast para informar que a operação foi bem-sucedida
+      Fluttertoast.showToast(
+        msg: "Consulta adicionada com sucesso!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      Navigator.of(context).pop();
+    } else {
+      // Exibe um alerta se os campos obrigatórios não forem preenchidos
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, selecione a data e a hora!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -56,22 +111,6 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20),
-            _buildTextField(
-              label: 'Para quem é a consulta',
-              onChanged: (value) => patientName = value,
-            ),
-            _buildTextField(
-              label: 'Especialidade do Médico',
-              onChanged: (value) => specialty = value,
-            ),
-            _buildTextField(
-              label: 'Nome do Médico',
-              onChanged: (value) => doctorName = value,
-            ),
-            _buildTextField(
-              label: 'Local',
-              onChanged: (value) => location = value,
-            ),
             _buildDateTimeButton(
               label: 'Selecionar Data',
               selectedDate: date,
@@ -84,56 +123,17 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
               onPressed: () => _selectTime(context),
               icon: Icons.access_time,
             ),
-            _buildTextField(
-              label: 'Informações Adicionais',
-              onChanged: (value) => additionalInfo = value,
-              isOptional: true,
-            ),
             SizedBox(height: 20),
             Align(
               alignment: Alignment.bottomRight,
               child: FloatingActionButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate() && date != null && time != null) {
-                    widget.onSubmit(
-                      patientName,
-                      specialty,
-                      doctorName,
-                      location,
-                      date!,
-                      time!,
-                      additionalInfo,
-                    );
-                  }
-                },
+                onPressed: () => _submitForm(context),
                 backgroundColor: Colors.blue[600],
                 child: Icon(Icons.add),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required String label,
-    required Function(String) onChanged,
-    bool isOptional = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-          labelStyle: TextStyle(color: Colors.black),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue[600]!),
-          ),
-        ),
-        onChanged: onChanged,
-        validator: (value) => isOptional || value!.isNotEmpty ? null : 'Campo obrigatório',
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/firebase_options.dart';
+import 'package:projeto_mobile/provider/appointment/AppointmentProvider.dart';
+import 'package:projeto_mobile/provider/appointment/Doctor.provider.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/view/authScreens/signInLogicScreen.dart';
@@ -18,7 +20,9 @@ Future main() async{
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => HistoryMedicationProvider()),
-      ChangeNotifierProvider(create: (context) => MedicationProvider())
+      ChangeNotifierProvider(create: (context) => MedicationProvider()),
+      ChangeNotifierProvider(create: (context) => AppointmentProvider()),
+      ChangeNotifierProvider(create: (context) => DoctorProvider()),
     ],
     child: MainApp(),
   ));
@@ -39,3 +43,4 @@ class MainApp extends StatelessWidget {
     );
   }
 }
+

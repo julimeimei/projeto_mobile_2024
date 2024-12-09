@@ -5,6 +5,7 @@ import 'package:projeto_mobile/view/appointment/appointmentScreen.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:projeto_mobile/view/taskScreen.dart';
+import 'package:projeto_mobile/view/user/EditUserScreen.dart';
 
 class MainScreen extends StatefulWidget {
   MedicationModel? medication;
@@ -16,18 +17,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   List<MedicationModel> medications = [];
-  List<MedicationModel> medicationHistory = []; // Lista de histórico
-  List<AppointmentModel> appointments = [];
+  List<MedicationModel> medicationHistory = [];
 
   void addMedicationToHistory(MedicationModel medication) {
     setState(() {
-      medicationHistory.add(medication); // Adiciona ao histórico
-    });
-  }
-
-  void addAppointment(AppointmentModel appointment) {
-    setState(() {
-      appointments.add(appointment);
+      medicationHistory.add(medication);
     });
   }
 
@@ -97,24 +91,35 @@ class _MainScreenState extends State<MainScreen> {
                   );
                 },
               ),
+              // Adicionar opção de editar usuário
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Editar Usuário'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditUserScreen(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
         body: TabBarView(
           children: [
             MedicationScreen(
-                // medications: medications,
-                // onMedicationAdded: (medication) {
-                //   setState(() {
-                //     medications.add(medication);
-                //   });
-                //   addMedicationToHistory(medication);
-                // },
-                ),
-            AppointmentScreen(
-              appointments: appointments,
-              onAppointmentAdded: addAppointment,
+              // medications: medications,
+              // onMedicationAdded: (medication) {
+              //   setState(() {
+              //     medications.add(medication);
+              //   });
+              //   addMedicationToHistory(medication);
+              // },
             ),
+            AppointmentScreen(),
             TaskScreen(),
           ],
         ),
