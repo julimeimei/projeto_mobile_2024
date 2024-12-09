@@ -21,11 +21,10 @@ class _SignInLogicScreenState extends State<SignInLogicScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-        backgroundColor: Color.fromRGBO(160, 106, 107, 1),
-        body: Center(
-          child: CircularProgressIndicator(
-          ),
+    return Scaffold(
+        backgroundColor: Colors.blue[800],
+        body: const Center(
+          child: CircularProgressIndicator(),
         ));
   }
 }

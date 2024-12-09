@@ -10,11 +10,11 @@ import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-Future main() async{
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-);
+  );
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => HistoryMedicationProvider()),
