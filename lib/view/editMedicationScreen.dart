@@ -9,6 +9,7 @@ import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
+import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -519,7 +520,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                     width: 4.w,
                   ),
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       _validateAndSubmit();
                       if (selectedWeekDays.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -536,6 +537,12 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                 context.read<MedicationProvider>();
                             final medicationToEdit =
                                 medicationProvider.selectedMedication;
+
+                            // Primeiro, cancelar os alarmes existentes
+                            if (medicationToEdit != null) {
+                              await cancelMedicationAlarms(medicationToEdit);
+                            }
+
                             MedicationModel medication = MedicationModel(action: "Editado",
                                 id: medicationToEdit?.id,
                                 isActive: true,
@@ -565,6 +572,20 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                     listen: false);
                             historyProvider.addHistoryMedication(medication.copy(),
                                 action: "Editado");
+
+                             // Agendar os novos alarmes se o medicamento estiver ativo
+                            if (medication.isActive) {
+                              await scheduleMedicationAlarms(medication);
+                            }
+
+                            // Mostrar feedback ao usuário
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Medicamento e alarmes atualizados com sucesso.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+
                             Navigator.pop(context);
                             //_saveChanges(medication);
                           } catch (e) {
@@ -594,30 +615,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     );
   }
 
-  // void _saveChanges(MedicationModel medication) {
-  //   final medicationProvider = context.read<MedicationProvider>();
-  //   final medicationToEdit = medicationProvider.selectedMedication;
-  //     medicationToEdit.id = medicationToEdit.id;
-  //     medicationToEdit.userName = medication.userName;
-  //     medicationToEdit.daysOfWeek = medication.daysOfWeek;
-  //     medicationToEdit.medicationTime = medication.medicationTime;
-  //     medicationToEdit.imageURL = medication.imageURL;
-  //     medicationToEdit.medicationName = medication.medicationName;
-  //     medicationToEdit.adminRoute = medication.adminRoute;
-  //     medicationToEdit.howToUse = medication.howToUse;
-  //     medicationToEdit.usageRange = medication.usageRange;
-  //     medicationToEdit.dosage = medication.dosage;
-  //     medicationToEdit.usageTimes = medication.usageTimes;
-  //     medicationToEdit.medicationUnits = medication.medicationUnits;
-  //     medicationToEdit.dueDate = medication.dueDate;
-  //     medicationToEdit.additionalInfo = medication.additionalInfo;
-
-  //   context.read<MedicationProvider>().editMedication(medication);
-  //   context
-  //       .read<HistoryMedicationProvider>()
-  //       .addHistoryMedication(medication, action: 'Editado');
-  //   Navigator.pop(context, medicationToEdit);
-  // }
+  
 
   Widget _buildTextField(TextEditingController controller, String labelText,
       String helpText, String errorMessage,

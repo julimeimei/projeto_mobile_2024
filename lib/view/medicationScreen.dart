@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +8,166 @@ import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/view/addMedicationScreen.dart';
 import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
+
+// Função para salvar as informações do alarme
+Future<void> _saveAlarmInfo(
+    int alarmId, String userName, String medicationName) async {
+  final prefs = await SharedPreferences.getInstance();
+  final alarmInfo = {
+    'userName': userName,
+    'medicationName': medicationName,
+  };
+  await prefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
+}
+
+// Modifique a função _alarmCallback para receber o ID do alarme
+@pragma('vm:entry-point')
+void _alarmCallback(int alarmId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? alarmInfoString = prefs.getString('alarm_$alarmId');
+
+  if (alarmInfoString != null) {
+    final alarmInfo = jsonDecode(alarmInfoString);
+    await showNotification(
+      userName: alarmInfo['userName'],
+      medicationName: alarmInfo['medicationName'],
+    );
+
+    // Limpar as informações após mostrar a notificação
+    await prefs.remove('alarm_$alarmId');
+  }
+
+  print("Alarme $alarmId disparado!");
+}
+
+int _getWeekdayFromName(String dayName) {
+  switch (dayName.toLowerCase()) {
+    case 'dom':
+      return DateTime.sunday;
+    case 'seg':
+      return DateTime.monday;
+    case 'ter':
+      return DateTime.tuesday;
+    case 'qua':
+      return DateTime.wednesday;
+    case 'qui':
+      return DateTime.thursday;
+    case 'sex':
+      return DateTime.friday;
+    case 'sáb':
+      return DateTime.saturday;
+    default:
+      throw ArgumentError("Dia inválido: $dayName");
+  }
+}
+
+int _generateAlarmId(DateTime dateTime, String medicationName) {
+  return dateTime.hashCode ^ medicationName.hashCode;
+}
+
+Future<void> scheduleMedicationAlarms(MedicationModel medication) async {
+  final List<String> times =
+      medication.medicationTime; // Horários em formato "HH:mm"
+  final List<String> daysOfWeek =
+      medication.daysOfWeek; // Dias selecionados (ex.: "Segunda")
+
+  for (String time in times) {
+    // Separar a hora e os minutos
+    final parts = time.split(":");
+    print(parts);
+    final int hour = int.parse(parts[0]);
+    final int minute = int.parse(parts[1]);
+
+    for (String day in daysOfWeek) {
+      // Calcular a data/hora do próximo alarme para o dia selecionado
+      final DateTime now = DateTime.now();
+      int weekday = _getWeekdayFromName(day);
+      int daysUntilNext = (weekday - now.weekday) % 7;
+      if (daysUntilNext < 0) daysUntilNext += 7;
+
+      DateTime alarmDateTime = DateTime(
+          now.year,
+          now.month,
+          now.day + daysUntilNext,
+          hour,
+          minute,
+          0,
+        );
+
+      // Se o horário já passou hoje, programe para a próxima semana
+      if (alarmDateTime.isBefore(now)) {
+        alarmDateTime = alarmDateTime.add(const Duration(days: 7));
+      }
+
+      final int alarmId =
+          _generateAlarmId(alarmDateTime, medication.medicationName);
+
+      // Salvar as informações do alarme antes de agendá-lo
+      await _saveAlarmInfo(
+        alarmId,
+        medication.userName,
+        medication.medicationName,
+      );
+
+      print(alarmDateTime);
+
+      // Agendar o alarme
+      await AndroidAlarmManager.oneShotAt(
+        alarmDateTime,
+        _generateAlarmId(alarmDateTime, medication.medicationName), // ID único
+        _alarmCallback, // Função que será executada
+        exact: true,
+        wakeup: true,
+      );
+    }
+  }
+}
+
+Future<void> cancelMedicationAlarms(MedicationModel medication) async {
+  final List<String> times = medication.medicationTime;
+  final List<String> daysOfWeek = medication.daysOfWeek;
+
+  for (String time in times) {
+    final parts = time.split(":");
+    final int hour = int.parse(parts[0]);
+    final int minute = int.parse(parts[1]);
+
+    for (String day in daysOfWeek) {
+      final DateTime now = DateTime.now();
+      int weekday = _getWeekdayFromName(day);
+      int daysUntilNext = (weekday - now.weekday) % 7;
+      if (daysUntilNext < 0) daysUntilNext += 7;
+
+      DateTime alarmDateTime = now
+          .add(Duration(days: daysUntilNext))
+          .copyWith(hour: hour, minute: minute, second: 0);
+
+      if (alarmDateTime.isBefore(now)) {
+        alarmDateTime = alarmDateTime.add(const Duration(days: 7));
+      }
+
+      final int alarmId =
+          _generateAlarmId(alarmDateTime, medication.medicationName);
+      await AndroidAlarmManager.cancel(alarmId);
+
+      // Também remover as informações salvas no SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('alarm_$alarmId');
+    }
+  }
+}
+
+Future<void> manageMedicationAlarms(MedicationModel medication) async {
+  if (medication.isActive) {
+    // Se o medicamento está ativo, agendar os alarmes
+    await scheduleMedicationAlarms(medication);
+  } else {
+    // Se o medicamento está inativo, cancelar os alarmes
+    await cancelMedicationAlarms(medication);
+  }
+}
 
 class MedicationScreen extends StatefulWidget {
   const MedicationScreen({Key? key}) : super(key: key);
@@ -53,8 +214,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   Text("Cancelar", style: TextStyle(color: Colors.blue[600])),
             ),
             TextButton(
-              onPressed: () {
-                deleteSelectedMedications(context); // Exclui os medicamentos
+              onPressed: () async {
+                 await deleteSelectedMedications(context); // Exclui os medicamentos
                 Navigator.of(context).pop(); // Fecha o diálogo
               },
               child: Text(
@@ -68,15 +229,27 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  void deleteSelectedMedications(BuildContext context) {
+  Future<void> deleteSelectedMedications(BuildContext context) async {
     final provider = Provider.of<MedicationProvider>(context, listen: false);
     final historyProvider =
         Provider.of<HistoryMedicationProvider>(context, listen: false);
     for (var medication in selectedMedications) {
+      //Cancelando alarmes
+      await cancelMedicationAlarms(medication);
+
       historyProvider.addHistoryMedication(medication.copy(),
           action: "Removido");
       provider.removeMedication(medication);
     }
+
+    // Mostrar feedback ao usuário
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Medicamentos e alarmes removidos com sucesso'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    
     setState(() {
       selectedMedications.clear();
       isSelectionMode = false;
@@ -193,9 +366,21 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         : Switch(
                             activeTrackColor: Colors.black,
                             value: medication.isActive,
-                            onChanged: (value) {
+                            onChanged: (value) async {
+                              final updatedMedication =
+                                  medication.copyWith(isActive: value);
                               provider.editMedication(
-                                medication.copyWith(isActive: value),
+                                updatedMedication,
+                              );
+                              // Gerenciar os alarmes
+                              await manageMedicationAlarms(updatedMedication);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(value
+                                      ? 'Alarmes ativados para ${medication.medicationName}'
+                                      : 'Alarmes desativados para ${medication.medicationName}'),
+                                  duration: Duration(seconds: 2),
+                                ),
                               );
                             },
                           ),
@@ -217,10 +402,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
                             builder: (context) => MedicationDetailsScreen(),
                           ),
                         );
-
-                        // if (updatedMedication != null) {
-                        //   provider.editMedication(updatedMedication);
-                        // }
                       }
                     },
                     onLongPress: toggleSelectionMode,

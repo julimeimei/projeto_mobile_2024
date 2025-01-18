@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:projeto_mobile/main.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/model/timePickerModel.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
@@ -9,7 +13,65 @@ import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
+
+Future<void> showNotification({
+  required String userName,
+  required String medicationName,
+}) async {
+  const AndroidNotificationDetails androidNotificationDetails =
+      AndroidNotificationDetails(
+          'alarm_channel3', // ID do canal
+          'Alarm Notifications', // Nome do canal
+          channelDescription: 'Notificações para alarmes agendados',
+          importance: Importance.high,
+          priority: Priority.high,
+          sound: RawResourceAndroidNotificationSound('alarm_sound'));
+
+  const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidNotificationDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    0, // ID da notificação
+    'Hora do remédio', // Título
+    '$userName, está na hora de tomar o remédio: $medicationName.', // Corpo
+    notificationDetails,
+  );
+}
+
+
+
+// Função para salvar as informações do alarme
+Future<void> _saveAlarmInfo(
+    int alarmId, String userName, String medicationName) async {
+  final prefs = await SharedPreferences.getInstance();
+  final alarmInfo = {
+    'userName': userName,
+    'medicationName': medicationName,
+  };
+  await prefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
+}
+
+// Modifique a função _alarmCallback para receber o ID do alarme
+@pragma('vm:entry-point')
+void _alarmCallback(int alarmId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? alarmInfoString = prefs.getString('alarm_$alarmId');
+
+  if (alarmInfoString != null) {
+    final alarmInfo = jsonDecode(alarmInfoString);
+    await showNotification(
+      userName: alarmInfo['userName'],
+      medicationName: alarmInfo['medicationName'],
+    );
+
+    // Limpar as informações após mostrar a notificação
+    await prefs.remove('alarm_$alarmId');
+  }
+
+  print("Alarme $alarmId disparado!");
+}
 
 class AddMedicationScreen extends StatefulWidget {
   const AddMedicationScreen({super.key});
@@ -42,6 +104,92 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       picker.minuteController.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _scheduleMedicationAlarms(MedicationModel medication) async {
+    final List<String> times =
+        medication.medicationTime; // Horários em formato "HH:mm"
+    final List<String> daysOfWeek =
+        medication.daysOfWeek; // Dias selecionados (ex.: "Segunda")
+
+    for (String time in times) {
+      // Separar a hora e os minutos
+      final parts = time.split(":");
+      print(parts);
+      final int hour = int.parse(parts[0]);
+      final int minute = int.parse(parts[1]);
+
+      for (String day in daysOfWeek) {
+        // Calcular a data/hora do próximo alarme para o dia selecionado
+        final DateTime now = DateTime.now();
+        int weekday = _getWeekdayFromName(day);
+        int daysUntilNext = (weekday - now.weekday) % 7;
+        if (daysUntilNext < 0) daysUntilNext += 7;
+
+        DateTime alarmDateTime = DateTime(
+          now.year,
+          now.month,
+          now.day + daysUntilNext,
+          hour,
+          minute,
+          0,
+        );
+
+        // Se o horário já passou hoje, programe para a próxima semana
+        if (alarmDateTime.isBefore(now)) {
+          alarmDateTime = alarmDateTime.add(const Duration(days: 7));
+        }
+
+        final int alarmId =
+            _generateAlarmId(alarmDateTime, medication.medicationName);
+
+        // Salvar as informações do alarme antes de agendá-lo
+        await _saveAlarmInfo(
+          alarmId,
+          medication.userName,
+          medication.medicationName,
+        );
+
+        print(alarmDateTime);
+
+        // Agendar o alarme
+        await AndroidAlarmManager.oneShotAt(
+          alarmDateTime,
+          _generateAlarmId(
+              alarmDateTime, medication.medicationName), // ID único
+          _alarmCallback, // Função que será executada
+          exact: true,
+          wakeup: true,
+        );
+      }
+    }
+  }
+
+  
+
+  int _getWeekdayFromName(String dayName) {
+    switch (dayName.toLowerCase()) {
+      case 'dom':
+        return DateTime.sunday;
+      case 'seg':
+        return DateTime.monday;
+      case 'ter':
+        return DateTime.tuesday;
+      case 'qua':
+        return DateTime.wednesday;
+      case 'qui':
+        return DateTime.thursday;
+      case 'sex':
+        return DateTime.friday;
+      case 'sáb':
+        return DateTime.saturday;
+      default:
+        throw ArgumentError("Dia inválido: $dayName");
+    }
+  }
+
+  int _generateAlarmId(DateTime dateTime, String medicationName) {
+    return dateTime.hashCode ^ medicationName.hashCode;
   }
 
   void _updateTimePickerReadOnly() {
@@ -484,7 +632,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                     width: 4.w,
                   ),
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       _validateAndSubmit();
                       if (selectedWeekDays.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -495,7 +643,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                       } else {
                         if (_formKey.currentState!.validate()) {
                           try {
-                            MedicationModel medication = MedicationModel(action: "Adicionado",
+                            MedicationModel medication = MedicationModel(
+                                action: "Adicionado",
                                 isActive: true,
                                 imageURL: imageUrl!,
                                 userName: _userNameController.text,
@@ -518,19 +667,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                 listen: false);
                             provider.addMedication(medication);
 
-                            final historyProvider = Provider.of<HistoryMedicationProvider>(context, listen: false);
-                            historyProvider.addHistoryMedication(medication.copy(), action: "Adicionado");
+                            final historyProvider =
+                                Provider.of<HistoryMedicationProvider>(context,
+                                    listen: false);
+                            historyProvider.addHistoryMedication(
+                                medication.copy(),
+                                action: "Adicionado");
 
-                            // Navigator.pushAndRemoveUntil(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) => MainScreen(
-                            //               medication: medication,
-                            //             )),
-                            //     (route) => false);
-                            // context
-                            //     .read<HistoryMedicationProvider>()
-                            //     .addHistoryMedication(medication.copy());
+                            // Configurar alarmes para os horários selecionados
+                            await _scheduleMedicationAlarms(medication);
+
                             Navigator.pop(context);
                           } catch (e) {
                             print("Error: $e");
