@@ -99,42 +99,20 @@ class HistoryMedicationProvider with ChangeNotifier {
     }
   }
 
-  // Future<void> fetchHistoryMedications() async {
-  //   try {
-  //     // Obtém o ID do usuário autenticado
-  //     String? userId = FirebaseAuth.instance.currentUser?.uid;
+  // // Agrupa os medicamentos por data formatada
+  // Map<String, List<MedicationModel>> get medicationsPerDate {
+  //   Map<String, List<MedicationModel>> groupedMedications = {};
 
-  //     if (userId != null) {
-  //       final snapshot = await _dbRef.child('$userId/History').get();
-
-  //       if (snapshot.exists) {
-  //         final historyMap = Map<String, dynamic>.from(snapshot.value as Map);
-  //         _historyMedication.clear();
-  //         historyMap.forEach((key, value) {
-  //           _historyMedication.add(MedicationModel.fromMap(value));
-  //         });
-  //         notifyListeners();
-  //       }
+  //   for (var medication in _historyMedication) {
+  //     String formattedDate = formatDate(medication.addDate);
+  //     if (!groupedMedications.containsKey(formattedDate)) {
+  //       groupedMedications[formattedDate] = [];
   //     }
-  //   } catch (error) {
-  //     debugPrint('Erro ao buscar histórico de medicamentos: $error');
+  //     groupedMedications[formattedDate]!.add(medication);
   //   }
+
+  //   return groupedMedications;
   // }
-
-  // Agrupa os medicamentos por data formatada
-  Map<String, List<MedicationModel>> get medicationsPerDate {
-    Map<String, List<MedicationModel>> groupedMedications = {};
-
-    for (var medication in _historyMedication) {
-      String formattedDate = formatDate(medication.addDate);
-      if (!groupedMedications.containsKey(formattedDate)) {
-        groupedMedications[formattedDate] = [];
-      }
-      groupedMedications[formattedDate]!.add(medication);
-    }
-
-    return groupedMedications;
-  }
 
   // Formata a data
   String formatDate(DateTime data) {
@@ -152,5 +130,54 @@ class HistoryMedicationProvider with ChangeNotifier {
     } else {
       return "${data.day}/${data.month}/${data.year}";
     }
+  }
+
+  Map<String, List<MedicationModel>> get medicationsPerDate {
+    Map<String, List<MedicationModel>> groupedMedications = {};
+
+    // Primeiro, agrupa os medicamentos por data
+    for (var medication in _historyMedication) {
+      String formattedDate = formatDate(medication.addDate);
+      if (!groupedMedications.containsKey(formattedDate)) {
+        groupedMedications[formattedDate] = [];
+      }
+      groupedMedications[formattedDate]!.add(medication);
+    }
+
+    // Cria um mapa ordenado baseado nas datas reais
+    var sortedKeys = groupedMedications.keys.toList()..sort((a, b) {
+      // Função auxiliar para converter as strings de data em DateTime
+      DateTime getDateTime(String date) {
+        if (date == "Hoje") {
+          return DateTime.now();
+        } else if (date == "Ontem") {
+          return DateTime.now().subtract(const Duration(days: 1));
+        } else {
+          // Converte strings como "dd/mm/yyyy" para DateTime
+          final parts = date.split('/');
+          return DateTime(
+            int.parse(parts[2]), // ano
+            int.parse(parts[1]), // mês
+            int.parse(parts[0]), // dia
+          );
+        }
+      }
+
+      // Compara as datas em ordem decrescente (mais recente primeiro)
+      return getDateTime(b).compareTo(getDateTime(a));
+    });
+
+    // Cria um novo mapa ordenado
+    Map<String, List<MedicationModel>> orderedMedications = {};
+    for (var key in sortedKeys) {
+      orderedMedications[key] = groupedMedications[key]!;
+      
+      //Ordena os medicamentos dentro de cada data pela hora
+      orderedMedications[key]!.sort((a, b) => 
+        b.addDate.compareTo(a.addDate)
+      );
+    }
+
+    return orderedMedications;
   }
 }

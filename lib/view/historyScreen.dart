@@ -196,6 +196,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.error,
+                                    size: 50,
+                                  ),
                                 ),
                               )
                             : const Icon(Icons.medication),

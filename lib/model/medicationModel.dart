@@ -14,10 +14,10 @@ class MedicationModel {
   int usageRange;
   int dosage;
   int usageTimes;
-  int medicationUnits;
+  //int medicationUnits;
   DateTime addDate = DateTime.now();
   String? action;
-  String dueDate;
+  //String dueDate;
   List<String> daysOfWeek;
   List<String> medicationTime;
   String? additionalInfo;
@@ -35,8 +35,8 @@ class MedicationModel {
     required this.usageRange,
     required this.dosage,
     required this.usageTimes,
-    required this.medicationUnits,
-    required this.dueDate,
+    //required this.medicationUnits,
+    //required this.dueDate,
     required this.daysOfWeek,
     required this.medicationTime,
     required this.additionalInfo,
@@ -71,9 +71,9 @@ class MedicationModel {
       usageRange: usageRange ?? this.usageRange,
       dosage: dosage ?? this.dosage,
       usageTimes: usageTimes ?? this.usageTimes,
-      medicationUnits: medicationUnits ?? this.medicationUnits,
+      //medicationUnits: medicationUnits ?? this.medicationUnits,
       action: action ?? this.action,
-      dueDate: dueDate ?? this.dueDate,
+      //dueDate: dueDate ?? this.dueDate,
       daysOfWeek: daysOfWeek ?? this.daysOfWeek,
       medicationTime: medicationTime ?? this.medicationTime,
       additionalInfo: additionalInfo ?? this.additionalInfo,
@@ -92,8 +92,8 @@ class MedicationModel {
       dosage: dosage,
       usageTimes: usageTimes,
       usageRange: usageRange,
-      medicationUnits: medicationUnits,
-      dueDate: dueDate,
+      //medicationUnits: medicationUnits,
+      //dueDate: dueDate,
       daysOfWeek: List.from(daysOfWeek), // Cria uma nova lista
       medicationTime: List.from(medicationTime), // Cria uma nova lista
       additionalInfo: additionalInfo,
@@ -114,9 +114,9 @@ class MedicationModel {
       'usageRange': usageRange,
       'dosage': dosage,
       'usageTimes': usageTimes,
-      'medicationUnits': medicationUnits,
+      //'medicationUnits': medicationUnits,
       'action': action,
-      'dueDate': dueDate,
+      //'dueDate': dueDate,
       'daysOfWeek': daysOfWeek,
       'medicationTime': medicationTime,
       'additionalInfo': additionalInfo,
@@ -136,9 +136,9 @@ class MedicationModel {
     usageRange: (map['usageRange'] as num?)?.toInt() ?? 0,
     dosage: (map['dosage'] as num?)?.toInt() ?? 0,
     usageTimes: (map['usageTimes'] as num?)?.toInt() ?? 0,
-    medicationUnits: (map['medicationUnits'] as num?)?.toInt() ?? 0,
+    //medicationUnits: (map['medicationUnits'] as num?)?.toInt() ?? 0,
     action: map['action']?.toString() ?? 'Indefinido', // Adicionado com valor padrão
-    dueDate: map['dueDate']?.toString() ?? '',
+    //dueDate: map['dueDate']?.toString() ?? '',
     daysOfWeek: map['daysOfWeek'] != null 
         ? List<String>.from(map['daysOfWeek'])
         : [],

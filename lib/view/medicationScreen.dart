@@ -88,13 +88,13 @@ Future<void> scheduleMedicationAlarms(MedicationModel medication) async {
       if (daysUntilNext < 0) daysUntilNext += 7;
 
       DateTime alarmDateTime = DateTime(
-          now.year,
-          now.month,
-          now.day + daysUntilNext,
-          hour,
-          minute,
-          0,
-        );
+        now.year,
+        now.month,
+        now.day + daysUntilNext,
+        hour,
+        minute,
+        0,
+      );
 
       // Se o horário já passou hoje, programe para a próxima semana
       if (alarmDateTime.isBefore(now)) {
@@ -215,7 +215,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
             ),
             TextButton(
               onPressed: () async {
-                 await deleteSelectedMedications(context); // Exclui os medicamentos
+                await deleteSelectedMedications(
+                    context); // Exclui os medicamentos
                 Navigator.of(context).pop(); // Fecha o diálogo
               },
               child: Text(
@@ -249,7 +250,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
         duration: Duration(seconds: 2),
       ),
     );
-    
+
     setState(() {
       selectedMedications.clear();
       isSelectionMode = false;
@@ -348,6 +349,11 @@ class _MedicationScreenState extends State<MedicationScreen> {
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                Icons.error,
+                                size: 50,
+                              ),
                             ),
                           )
                         : const Icon(Icons.medication),

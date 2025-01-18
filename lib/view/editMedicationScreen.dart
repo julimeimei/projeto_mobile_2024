@@ -39,7 +39,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
 
     if (medicationToEdit != null) {
       _image = File(medicationToEdit.imageURL);
-      _dateController = TextEditingController(text: medicationToEdit.dueDate);
+      //_dateController = TextEditingController(text: medicationToEdit.dueDate);
       _userNameController =
           TextEditingController(text: medicationToEdit.userName);
       _medicationNameController =
@@ -52,8 +52,8 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
           TextEditingController(text: medicationToEdit.usageRange.toString());
       _dosageController =
           TextEditingController(text: medicationToEdit.dosage.toString());
-      _medicationUnitsController = TextEditingController(
-          text: medicationToEdit.medicationUnits.toString());
+      // _medicationUnitsController = TextEditingController(
+      //     text: medicationToEdit.medicationUnits.toString());
       _additionalInfoController =
           TextEditingController(text: medicationToEdit.additionalInfo);
     }
@@ -67,7 +67,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
       picker.hourController.dispose();
       picker.minuteController.dispose();
     }
-    _dateController.dispose();
+    //_dateController.dispose();
     _hourController.dispose();
     _dosageController.dispose();
     _minuteController.dispose();
@@ -77,7 +77,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     _usageTimesController.dispose();
     _additionalInfoController.dispose();
     _medicationNameController.dispose();
-    _medicationUnitsController.dispose();
+    //_medicationUnitsController.dispose();
     super.dispose();
   }
 
@@ -184,44 +184,44 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     }
   }
 
-  DateTime? selectedDate;
-  final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
-  late TextEditingController _dateController = TextEditingController();
+  // DateTime? selectedDate;
+  // final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
+  // late TextEditingController _dateController = TextEditingController();
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      helpText: 'Qual a data de vencimento?',
-      cancelText: 'Cancelar',
-      confirmText: 'OK',
-      fieldHintText: 'Dia/Mês/Ano',
-      fieldLabelText: 'Data',
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue, // Cor do cabeçalho
-              onPrimary: Colors.white, // Cor do texto do cabeçalho
-              onSurface: Colors.black, // Cor do texto e dos ícones
-            ),
-            dialogBackgroundColor: Colors.white, // Cor de fundo do calendário
-          ),
-          child: child!,
-        );
-      },
-    );
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2101),
+  //     helpText: 'Qual a data de vencimento?',
+  //     cancelText: 'Cancelar',
+  //     confirmText: 'OK',
+  //     fieldHintText: 'Dia/Mês/Ano',
+  //     fieldLabelText: 'Data',
+  //     builder: (BuildContext context, Widget? child) {
+  //       return Theme(
+  //         data: ThemeData.light().copyWith(
+  //           colorScheme: const ColorScheme.light(
+  //             primary: Colors.blue, // Cor do cabeçalho
+  //             onPrimary: Colors.white, // Cor do texto do cabeçalho
+  //             onSurface: Colors.black, // Cor do texto e dos ícones
+  //           ),
+  //           dialogBackgroundColor: Colors.white, // Cor de fundo do calendário
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
 
-    if (pickedDate != null && pickedDate != selectedDate) {
-      setState(() {
-        selectedDate = pickedDate;
-        _dateController.text = dateFormat.format(selectedDate!);
-        dueDate = dateFormat.format(selectedDate!);
-      });
-    }
-  }
+  //   if (pickedDate != null && pickedDate != selectedDate) {
+  //     setState(() {
+  //       selectedDate = pickedDate;
+  //       _dateController.text = dateFormat.format(selectedDate!);
+  //       dueDate = dateFormat.format(selectedDate!);
+  //     });
+  //   }
+  // }
 
   List<bool> selectedDays = List.filled(7, false);
 
@@ -266,11 +266,11 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
   String? howToUse;
   late TextEditingController _usageRangeController = TextEditingController();
 
-  late TextEditingController _medicationUnitsController =
-      TextEditingController();
+  // late TextEditingController _medicationUnitsController =
+  //     TextEditingController();
 
   late TextEditingController _dosageController = TextEditingController();
-  String? dueDate;
+  //String? dueDate;
   List<String> selectedWeekDays = [];
   List<TimeOfDay> medicationTime = [];
   bool isActive = true;
@@ -465,18 +465,18 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                   'Por favor, informe o intervado de uso.',
                   isNumber: true,
                 ),
-                _buildTextField(
-                  _medicationUnitsController,
-                  'Unidades do medicamento',
-                  (howToUse == 'Xarope' ||
-                          howToUse == 'Gotas' ||
-                          howToUse == 'Nebulização')
-                      ? 'Quantos ml do medicamento tem no frasco?'
-                      : 'Quantas unidades do medicamento tem no momento',
-                  'Por favor, insira algum número no campo.',
-                  isNumber: true,
-                ),
-                _dataPicker(context),
+                // _buildTextField(
+                //   _medicationUnitsController,
+                //   'Unidades do medicamento',
+                //   (howToUse == 'Xarope' ||
+                //           howToUse == 'Gotas' ||
+                //           howToUse == 'Nebulização')
+                //       ? 'Quantos ml do medicamento tem no frasco?'
+                //       : 'Quantas unidades do medicamento tem no momento',
+                //   'Por favor, insira algum número no campo.',
+                //   isNumber: true,
+                // ),
+                // _dataPicker(context),
                 _weekDaysPicker(context),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
@@ -543,7 +543,8 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                               await cancelMedicationAlarms(medicationToEdit);
                             }
 
-                            MedicationModel medication = MedicationModel(action: "Editado",
+                            MedicationModel medication = MedicationModel(
+                                action: "Editado",
                                 id: medicationToEdit?.id,
                                 isActive: true,
                                 imageURL: imageUrl!,
@@ -556,9 +557,9 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                                 dosage: int.tryParse(_dosageController.text)!,
                                 usageTimes:
                                     int.tryParse(_usageTimesController.text)!,
-                                medicationUnits: int.tryParse(
-                                    _medicationUnitsController.text)!,
-                                dueDate: _dateController.text,
+                                // medicationUnits: int.tryParse(
+                                //     _medicationUnitsController.text)!,
+                                // dueDate: _dateController.text,
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
@@ -570,10 +571,11 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                             final historyProvider =
                                 Provider.of<HistoryMedicationProvider>(context,
                                     listen: false);
-                            historyProvider.addHistoryMedication(medication.copy(),
+                            historyProvider.addHistoryMedication(
+                                medication.copy(),
                                 action: "Editado");
 
-                             // Agendar os novos alarmes se o medicamento estiver ativo
+                            // Agendar os novos alarmes se o medicamento estiver ativo
                             if (medication.isActive) {
                               await scheduleMedicationAlarms(medication);
                             }
@@ -581,7 +583,8 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                             // Mostrar feedback ao usuário
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Medicamento e alarmes atualizados com sucesso.'),
+                                content: Text(
+                                    'Medicamento e alarmes atualizados com sucesso.'),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -614,8 +617,6 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
       ),
     );
   }
-
-  
 
   Widget _buildTextField(TextEditingController controller, String labelText,
       String helpText, String errorMessage,
@@ -733,39 +734,39 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     });
   }
 
-  Widget _dataPicker(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          TextFormField(
-            controller: _dateController,
-            decoration: InputDecoration(
-              labelStyle: TextStyle(
-                color: Colors.black,
-              ),
-              focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue[600]!)),
-              labelText: 'Qual a data de vencimento?',
-              hintText: 'Dia/Mês/Ano',
-              suffixIcon: Icon(Icons.calendar_today),
-              border: OutlineInputBorder(),
-            ),
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, insira a data de vencimento';
-              }
-              return null;
-            },
-            readOnly: true,
-            onTap: () => _selectDate(context),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _dataPicker(BuildContext context) {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: <Widget>[
+  //         TextFormField(
+  //           controller: _dateController,
+  //           decoration: InputDecoration(
+  //             labelStyle: TextStyle(
+  //               color: Colors.black,
+  //             ),
+  //             focusedBorder: OutlineInputBorder(
+  //                 borderSide: BorderSide(color: Colors.blue[600]!)),
+  //             labelText: 'Qual a data de vencimento?',
+  //             hintText: 'Dia/Mês/Ano',
+  //             suffixIcon: Icon(Icons.calendar_today),
+  //             border: OutlineInputBorder(),
+  //           ),
+  //           autovalidateMode: AutovalidateMode.onUserInteraction,
+  //           validator: (value) {
+  //             if (value == null || value.isEmpty) {
+  //               return 'Por favor, insira a data de vencimento';
+  //             }
+  //             return null;
+  //           },
+  //           readOnly: true,
+  //           onTap: () => _selectDate(context),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _weekDaysPicker(BuildContext context) {
     return Padding(

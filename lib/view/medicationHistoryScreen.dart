@@ -52,6 +52,11 @@ class MedicationHistoryScreen extends StatelessWidget {
                               width: 200,
                               height: 200,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                Icons.error,
+                                size: 200,
+                              ),
                             )
                           : Icon(
                               Icons.medication,
@@ -71,9 +76,9 @@ class MedicationHistoryScreen extends StatelessWidget {
                       'Vezes ao dia', '${medication.usageTimes} vezes'),
                   _buildDetailRow(
                       'Intervalo de uso', '${medication.usageRange} horas'),
-                  _buildDetailRow('Unidades do medicamento',
-                      '${medication.medicationUnits} unidades'),
-                  _buildDetailRow('Data de vencimento', medication.dueDate),
+                  // _buildDetailRow('Unidades do medicamento',
+                  //     '${medication.medicationUnits} unidades'),
+                  // _buildDetailRow('Data de vencimento', medication.dueDate),
                   _buildDetailRow(
                       'Dias de uso', medication.daysOfWeek.join(", ")),
                   _buildDetailRow(

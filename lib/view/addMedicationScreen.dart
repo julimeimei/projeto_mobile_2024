@@ -40,8 +40,6 @@ Future<void> showNotification({
   );
 }
 
-
-
 // Função para salvar as informações do alarme
 Future<void> _saveAlarmInfo(
     int alarmId, String userName, String medicationName) async {
@@ -164,8 +162,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       }
     }
   }
-
-  
 
   int _getWeekdayFromName(String dayName) {
     switch (dayName.toLowerCase()) {
@@ -299,40 +295,40 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   final TextEditingController _dateController = TextEditingController();
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      helpText: 'Qual a data de vencimento?',
-      cancelText: 'Cancelar',
-      confirmText: 'OK',
-      fieldHintText: 'Dia/Mês/Ano',
-      fieldLabelText: 'Data',
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue, // Cor do cabeçalho
-              onPrimary: Colors.white, // Cor do texto do cabeçalho
-              onSurface: Colors.black, // Cor do texto e dos ícones
-            ),
-            dialogBackgroundColor: Colors.white, // Cor de fundo do calendário
-          ),
-          child: child!,
-        );
-      },
-    );
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2101),
+  //     helpText: 'Qual a data de vencimento?',
+  //     cancelText: 'Cancelar',
+  //     confirmText: 'OK',
+  //     fieldHintText: 'Dia/Mês/Ano',
+  //     fieldLabelText: 'Data',
+  //     builder: (BuildContext context, Widget? child) {
+  //       return Theme(
+  //         data: ThemeData.light().copyWith(
+  //           colorScheme: const ColorScheme.light(
+  //             primary: Colors.blue, // Cor do cabeçalho
+  //             onPrimary: Colors.white, // Cor do texto do cabeçalho
+  //             onSurface: Colors.black, // Cor do texto e dos ícones
+  //           ),
+  //           dialogBackgroundColor: Colors.white, // Cor de fundo do calendário
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
 
-    if (pickedDate != null && pickedDate != selectedDate) {
-      setState(() {
-        selectedDate = pickedDate;
-        _dateController.text = dateFormat.format(selectedDate!);
-        dueDate = dateFormat.format(selectedDate!);
-      });
-    }
-  }
+  //   if (pickedDate != null && pickedDate != selectedDate) {
+  //     setState(() {
+  //       selectedDate = pickedDate;
+  //       _dateController.text = dateFormat.format(selectedDate!);
+  //       dueDate = dateFormat.format(selectedDate!);
+  //     });
+  //   }
+  // }
 
   List<bool> selectedDays = List.filled(7, false);
 
@@ -377,11 +373,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   String? howToUse;
   final TextEditingController _usageRangeController = TextEditingController();
 
-  final TextEditingController _medicationUnitsController =
-      TextEditingController();
+  // final TextEditingController _medicationUnitsController =
+  //     TextEditingController();
 
   final TextEditingController _dosageController = TextEditingController();
-  String? dueDate;
+  //String? dueDate;
   List<String> selectedWeekDays = [];
   List<TimeOfDay> medicationTime = [];
   bool isActive = true;
@@ -577,18 +573,18 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   'Por favor, informe o intervado de uso.',
                   isNumber: true,
                 ),
-                _buildTextField(
-                  _medicationUnitsController,
-                  'Unidades do medicamento',
-                  (howToUse == 'Xarope' ||
-                          howToUse == 'Gotas' ||
-                          howToUse == 'Nebulização')
-                      ? 'Quantos ml do medicamento tem no frasco?'
-                      : 'Quantas unidades do medicamento tem no momento',
-                  'Por favor, insira algum número no campo.',
-                  isNumber: true,
-                ),
-                _dataPicker(context),
+                // _buildTextField(
+                //   _medicationUnitsController,
+                //   'Unidades do medicamento',
+                //   (howToUse == 'Xarope' ||
+                //           howToUse == 'Gotas' ||
+                //           howToUse == 'Nebulização')
+                //       ? 'Quantos ml do medicamento tem no frasco?'
+                //       : 'Quantas unidades do medicamento tem no momento',
+                //   'Por favor, insira algum número no campo.',
+                //   isNumber: true,
+                // ),
+                // _dataPicker(context),
                 _weekDaysPicker(context),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
@@ -656,9 +652,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                 dosage: int.tryParse(_dosageController.text)!,
                                 usageTimes:
                                     int.tryParse(_usageTimesController.text)!,
-                                medicationUnits: int.tryParse(
-                                    _medicationUnitsController.text)!,
-                                dueDate: _dateController.text,
+                                // medicationUnits: int.tryParse(
+                                //     _medicationUnitsController.text)!,
+                                //dueDate: _dateController.text,
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
@@ -821,39 +817,39 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     });
   }
 
-  Widget _dataPicker(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          TextFormField(
-            controller: _dateController,
-            decoration: InputDecoration(
-              labelStyle: TextStyle(
-                color: Colors.black,
-              ),
-              focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue[600]!)),
-              labelText: 'Qual a data de vencimento?',
-              hintText: 'Dia/Mês/Ano',
-              suffixIcon: Icon(Icons.calendar_today),
-              border: OutlineInputBorder(),
-            ),
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, insira a data de vencimento';
-              }
-              return null;
-            },
-            readOnly: true,
-            onTap: () => _selectDate(context),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _dataPicker(BuildContext context) {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: <Widget>[
+  //         TextFormField(
+  //           controller: _dateController,
+  //           decoration: InputDecoration(
+  //             labelStyle: TextStyle(
+  //               color: Colors.black,
+  //             ),
+  //             focusedBorder: OutlineInputBorder(
+  //                 borderSide: BorderSide(color: Colors.blue[600]!)),
+  //             labelText: 'Qual a data de vencimento?',
+  //             hintText: 'Dia/Mês/Ano',
+  //             suffixIcon: Icon(Icons.calendar_today),
+  //             border: OutlineInputBorder(),
+  //           ),
+  //           autovalidateMode: AutovalidateMode.onUserInteraction,
+  //           validator: (value) {
+  //             if (value == null || value.isEmpty) {
+  //               return 'Por favor, insira a data de vencimento';
+  //             }
+  //             return null;
+  //           },
+  //           readOnly: true,
+  //           onTap: () => _selectDate(context),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _weekDaysPicker(BuildContext context) {
     return Padding(
