@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/constant/constant.dart';
 import 'package:projeto_mobile/model/userModel.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/view/authScreens/loginScreen.dart';
 import 'package:projeto_mobile/view/authScreens/registerScreen.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:projeto_mobile/view/authScreens/signInLogicScreen.dart';
+import 'package:provider/provider.dart';
 
 class AuthServices {
   static Future<void> registerUserData(
@@ -54,6 +56,9 @@ class AuthServices {
             context,
             MaterialPageRoute(builder: (context) => MainScreen()),
             (route) => false);
+        // Após logar, busque os medicamentos e reagende os alarmes
+        await Provider.of<MedicationProvider>(context, listen: false)
+            .fetchMedications();
       } else {
         Navigator.pushAndRemoveUntil(
             context,

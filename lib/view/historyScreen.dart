@@ -3,11 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
-import 'package:projeto_mobile/view/mainScreen.dart';
-import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:projeto_mobile/view/medicationHistoryScreen.dart';
 import 'package:provider/provider.dart';
-import 'package:sizer/sizer.dart';
 
 class HistoryScreen extends StatefulWidget {
   final List<MedicationModel> medicationHistory;

@@ -11,15 +11,14 @@ import 'package:projeto_mobile/model/timePickerModel.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/imageService.dart';
-import 'package:projeto_mobile/view/mainScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
-Future<void> showNotification({
-  required String userName,
-  required String medicationName,
-}) async {
+Future<void> showNotification(
+    {required String userName,
+    required String medicationName,
+    required int alarmId}) async {
   const AndroidNotificationDetails androidNotificationDetails =
       AndroidNotificationDetails(
           'alarm_channel3', // ID do canal
@@ -33,7 +32,7 @@ Future<void> showNotification({
       NotificationDetails(android: androidNotificationDetails);
 
   await flutterLocalNotificationsPlugin.show(
-    0, // ID da notificação
+    alarmId, // ID da notificação
     'Hora do remédio', // Título
     '$userName, está na hora de tomar o remédio: $medicationName.', // Corpo
     notificationDetails,
@@ -43,32 +42,121 @@ Future<void> showNotification({
 // Função para salvar as informações do alarme
 Future<void> _saveAlarmInfo(
     int alarmId, String userName, String medicationName) async {
-  final prefs = await SharedPreferences.getInstance();
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+
   final alarmInfo = {
     'userName': userName,
     'medicationName': medicationName,
   };
-  await prefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
+  await asyncPrefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
 }
 
-// Modifique a função _alarmCallback para receber o ID do alarme
+// // Modifique a função _alarmCallback para receber o ID do alarme
 @pragma('vm:entry-point')
 void _alarmCallback(int alarmId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? alarmInfoString = prefs.getString('alarm_$alarmId');
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+
+  final String? alarmInfoString = await asyncPrefs.getString('alarm_$alarmId');
+  print("Informações do alarme ID $alarmId: $alarmInfoString");
 
   if (alarmInfoString != null) {
     final alarmInfo = jsonDecode(alarmInfoString);
     await showNotification(
-      userName: alarmInfo['userName'],
-      medicationName: alarmInfo['medicationName'],
-    );
+        userName: alarmInfo['userName'],
+        medicationName: alarmInfo['medicationName'],
+        alarmId: alarmId);
 
     // Limpar as informações após mostrar a notificação
-    await prefs.remove('alarm_$alarmId');
+    await asyncPrefs.remove('alarm_$alarmId');
+  } else {
+    print('Informações do alarme ID $alarmId não encontradas.');
   }
 
   print("Alarme $alarmId disparado!");
+}
+
+int _generateAlarmId(DateTime dateTime, String medicationId) {
+  return '${dateTime.millisecondsSinceEpoch}_$medicationId'.hashCode;
+}
+
+int _getWeekdayFromName(String dayName) {
+  switch (dayName.toLowerCase()) {
+    case 'dom':
+      return DateTime.sunday;
+    case 'seg':
+      return DateTime.monday;
+    case 'ter':
+      return DateTime.tuesday;
+    case 'qua':
+      return DateTime.wednesday;
+    case 'qui':
+      return DateTime.thursday;
+    case 'sex':
+      return DateTime.friday;
+    case 'sáb':
+      return DateTime.saturday;
+    default:
+      throw ArgumentError("Dia inválido: $dayName");
+  }
+}
+
+Future<void> _scheduleMedicationAlarms(MedicationModel medication) async {
+  final List<String> times =
+      medication.medicationTime; // Horários em formato "HH:mm"
+  final List<String> daysOfWeek =
+      medication.daysOfWeek; // Dias selecionados (ex.: "Segunda")
+
+  for (String time in times) {
+    // Separar a hora e os minutos
+    final parts = time.split(":");
+    print(parts);
+    final int hour = int.parse(parts[0]);
+    final int minute = int.parse(parts[1]);
+
+    for (String day in daysOfWeek) {
+      // Calcular a data/hora do próximo alarme para o dia selecionado
+      final DateTime now = DateTime.now();
+      int weekday = _getWeekdayFromName(day);
+      int daysUntilNext = (weekday - now.weekday) % 7;
+      if (daysUntilNext < 0) daysUntilNext += 7;
+
+      DateTime alarmDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day + daysUntilNext,
+        hour,
+        minute,
+        0,
+      );
+
+      // Se o horário já passou hoje, programe para a próxima semana
+      if (alarmDateTime.isBefore(now)) {
+        alarmDateTime = alarmDateTime.add(const Duration(days: 7));
+      }
+
+      final int alarmId = _generateAlarmId(alarmDateTime, medication.id);
+
+      // Salvar as informações do alarme antes de agendá-lo
+      await _saveAlarmInfo(
+        alarmId,
+        medication.userName,
+        medication.medicationName,
+      );
+
+      print(alarmDateTime);
+
+      print("Agendando alarme para: $alarmDateTime com ID $alarmId");
+
+      // Agendar o alarme
+      await AndroidAlarmManager.oneShotAt(
+        alarmDateTime,
+        alarmId, // ID único
+        _alarmCallback, // Função que será executada
+        exact: true,
+        wakeup: true,
+      );
+    }
+  }
 }
 
 class AddMedicationScreen extends StatefulWidget {
@@ -102,90 +190,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       picker.minuteController.dispose();
     }
     super.dispose();
-  }
-
-  Future<void> _scheduleMedicationAlarms(MedicationModel medication) async {
-    final List<String> times =
-        medication.medicationTime; // Horários em formato "HH:mm"
-    final List<String> daysOfWeek =
-        medication.daysOfWeek; // Dias selecionados (ex.: "Segunda")
-
-    for (String time in times) {
-      // Separar a hora e os minutos
-      final parts = time.split(":");
-      print(parts);
-      final int hour = int.parse(parts[0]);
-      final int minute = int.parse(parts[1]);
-
-      for (String day in daysOfWeek) {
-        // Calcular a data/hora do próximo alarme para o dia selecionado
-        final DateTime now = DateTime.now();
-        int weekday = _getWeekdayFromName(day);
-        int daysUntilNext = (weekday - now.weekday) % 7;
-        if (daysUntilNext < 0) daysUntilNext += 7;
-
-        DateTime alarmDateTime = DateTime(
-          now.year,
-          now.month,
-          now.day + daysUntilNext,
-          hour,
-          minute,
-          0,
-        );
-
-        // Se o horário já passou hoje, programe para a próxima semana
-        if (alarmDateTime.isBefore(now)) {
-          alarmDateTime = alarmDateTime.add(const Duration(days: 7));
-        }
-
-        final int alarmId =
-            _generateAlarmId(alarmDateTime, medication.medicationName);
-
-        // Salvar as informações do alarme antes de agendá-lo
-        await _saveAlarmInfo(
-          alarmId,
-          medication.userName,
-          medication.medicationName,
-        );
-
-        print(alarmDateTime);
-
-        // Agendar o alarme
-        await AndroidAlarmManager.oneShotAt(
-          alarmDateTime,
-          _generateAlarmId(
-              alarmDateTime, medication.medicationName), // ID único
-          _alarmCallback, // Função que será executada
-          exact: true,
-          wakeup: true,
-        );
-      }
-    }
-  }
-
-  int _getWeekdayFromName(String dayName) {
-    switch (dayName.toLowerCase()) {
-      case 'dom':
-        return DateTime.sunday;
-      case 'seg':
-        return DateTime.monday;
-      case 'ter':
-        return DateTime.tuesday;
-      case 'qua':
-        return DateTime.wednesday;
-      case 'qui':
-        return DateTime.thursday;
-      case 'sex':
-        return DateTime.friday;
-      case 'sáb':
-        return DateTime.saturday;
-      default:
-        throw ArgumentError("Dia inválido: $dayName");
-    }
-  }
-
-  int _generateAlarmId(DateTime dateTime, String medicationName) {
-    return dateTime.hashCode ^ medicationName.hashCode;
   }
 
   void _updateTimePickerReadOnly() {
@@ -293,42 +297,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   DateTime? selectedDate;
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
-  final TextEditingController _dateController = TextEditingController();
-
-  // Future<void> _selectDate(BuildContext context) async {
-  //   final DateTime? pickedDate = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(2000),
-  //     lastDate: DateTime(2101),
-  //     helpText: 'Qual a data de vencimento?',
-  //     cancelText: 'Cancelar',
-  //     confirmText: 'OK',
-  //     fieldHintText: 'Dia/Mês/Ano',
-  //     fieldLabelText: 'Data',
-  //     builder: (BuildContext context, Widget? child) {
-  //       return Theme(
-  //         data: ThemeData.light().copyWith(
-  //           colorScheme: const ColorScheme.light(
-  //             primary: Colors.blue, // Cor do cabeçalho
-  //             onPrimary: Colors.white, // Cor do texto do cabeçalho
-  //             onSurface: Colors.black, // Cor do texto e dos ícones
-  //           ),
-  //           dialogBackgroundColor: Colors.white, // Cor de fundo do calendário
-  //         ),
-  //         child: child!,
-  //       );
-  //     },
-  //   );
-
-  //   if (pickedDate != null && pickedDate != selectedDate) {
-  //     setState(() {
-  //       selectedDate = pickedDate;
-  //       _dateController.text = dateFormat.format(selectedDate!);
-  //       dueDate = dateFormat.format(selectedDate!);
-  //     });
-  //   }
-  // }
 
   List<bool> selectedDays = List.filled(7, false);
 
@@ -373,11 +341,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   String? howToUse;
   final TextEditingController _usageRangeController = TextEditingController();
 
-  // final TextEditingController _medicationUnitsController =
-  //     TextEditingController();
-
   final TextEditingController _dosageController = TextEditingController();
-  //String? dueDate;
+
   List<String> selectedWeekDays = [];
   List<TimeOfDay> medicationTime = [];
   bool isActive = true;
@@ -386,7 +351,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   final TextEditingController _usageTimesController = TextEditingController();
   final TextEditingController _howToUseController = TextEditingController();
-  final TextEditingController _adminRouteController = TextEditingController();
 
   final List<String> adminRouteList = [
     'Oral',
@@ -440,7 +404,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   }
 
   Future<void> _selectImage() async {
-    imageUrl = await ImageService.pickImageAndSaveLocally();
+    imageUrl = await ImageService.pickImageAndSaveLocally(context);
     if (imageUrl != null) {
       setState(() {
         _image = File(imageUrl!);
@@ -573,18 +537,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   'Por favor, informe o intervado de uso.',
                   isNumber: true,
                 ),
-                // _buildTextField(
-                //   _medicationUnitsController,
-                //   'Unidades do medicamento',
-                //   (howToUse == 'Xarope' ||
-                //           howToUse == 'Gotas' ||
-                //           howToUse == 'Nebulização')
-                //       ? 'Quantos ml do medicamento tem no frasco?'
-                //       : 'Quantas unidades do medicamento tem no momento',
-                //   'Por favor, insira algum número no campo.',
-                //   isNumber: true,
-                // ),
-                // _dataPicker(context),
                 _weekDaysPicker(context),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
@@ -652,9 +604,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                                 dosage: int.tryParse(_dosageController.text)!,
                                 usageTimes:
                                     int.tryParse(_usageTimesController.text)!,
-                                // medicationUnits: int.tryParse(
-                                //     _medicationUnitsController.text)!,
-                                //dueDate: _dateController.text,
                                 daysOfWeek: selectedWeekDays,
                                 medicationTime: getMedicationTimes(),
                                 additionalInfo: _additionalInfoController.text);
@@ -816,40 +765,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       }
     });
   }
-
-  // Widget _dataPicker(BuildContext context) {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
-  //     child: Column(
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: <Widget>[
-  //         TextFormField(
-  //           controller: _dateController,
-  //           decoration: InputDecoration(
-  //             labelStyle: TextStyle(
-  //               color: Colors.black,
-  //             ),
-  //             focusedBorder: OutlineInputBorder(
-  //                 borderSide: BorderSide(color: Colors.blue[600]!)),
-  //             labelText: 'Qual a data de vencimento?',
-  //             hintText: 'Dia/Mês/Ano',
-  //             suffixIcon: Icon(Icons.calendar_today),
-  //             border: OutlineInputBorder(),
-  //           ),
-  //           autovalidateMode: AutovalidateMode.onUserInteraction,
-  //           validator: (value) {
-  //             if (value == null || value.isEmpty) {
-  //               return 'Por favor, insira a data de vencimento';
-  //             }
-  //             return null;
-  //           },
-  //           readOnly: true,
-  //           onTap: () => _selectDate(context),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _weekDaysPicker(BuildContext context) {
     return Padding(

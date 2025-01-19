@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
+import 'package:projeto_mobile/view/medicationScreen.dart';
 
 class MedicationProvider with ChangeNotifier {
   final List<MedicationModel> _medications = [];
@@ -18,6 +19,13 @@ class MedicationProvider with ChangeNotifier {
     _selectedMedication = medication;
     notifyListeners();
   }
+
+  Future<void> rescheduleAlarms() async {
+  for (var medication in _medications) {
+    // Chame a função que agenda alarmes para este medicamento
+    await scheduleMedicationAlarms(medication);
+  }
+}
 
   // Adiciona um medicamento ao Firebase no caminho "Users/user.id/Medications/medication.id"
   Future<void> addMedication(MedicationModel medication) async {
@@ -63,6 +71,9 @@ class MedicationProvider with ChangeNotifier {
         });
 
         notifyListeners();
+
+        // Reagendar alarmes após buscar os medicamentos
+        await rescheduleAlarms();
       }
     }
   } catch (error) {

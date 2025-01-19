@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
-import 'package:projeto_mobile/model/appointmentModel.dart';
 import 'package:projeto_mobile/model/userModel.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/authService.dart';
 import 'package:projeto_mobile/services/profileService.dart';
 import 'package:projeto_mobile/view/appointment/appointmentScreen.dart';
@@ -11,7 +11,9 @@ import 'package:projeto_mobile/view/historyScreen.dart';
 import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:projeto_mobile/view/taskScreen.dart';
 import 'package:projeto_mobile/view/user/EditUserScreen.dart';
+import 'package:provider/provider.dart';
 
+// ignore: must_be_immutable
 class MainScreen extends StatefulWidget {
   MedicationModel? medication;
   MainScreen({this.medication, super.key});
@@ -80,6 +82,9 @@ class _MainScreenState extends State<MainScreen> {
                         onSelected: (value) {
                           if (value == 'logout') {
                             AuthServices.signOut();
+                            for(var medication in context.read<MedicationProvider>().medications){
+                              cancelMedicationAlarms(medication);
+                            }
                             Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:projeto_mobile/model/medicationModel.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'dart:io';
 import 'package:projeto_mobile/view/editMedicationScreen.dart';
@@ -94,9 +93,6 @@ class MedicationDetailsScreen extends StatelessWidget {
                       'Vezes ao dia', '${medication.usageTimes} vezes'),
                   _buildDetailRow(
                       'Intervalo de uso', '${medication.usageRange} horas'),
-                  // _buildDetailRow('Unidades do medicamento',
-                  //     '${medication.medicationUnits} unidades'),
-                  // _buildDetailRow('Data de vencimento', medication.dueDate),
                   _buildDetailRow(
                       'Dias de uso', medication.daysOfWeek.join(", ")),
                   _buildDetailRow(

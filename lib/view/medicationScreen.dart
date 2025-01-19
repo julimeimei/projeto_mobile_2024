@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:projeto_mobile/main.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:projeto_mobile/model/medicationModel.dart';
@@ -11,35 +13,67 @@ import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
+Future<void> showNotification(
+    {required String userName,
+    required String medicationName,
+    required int alarmId}) async {
+  const AndroidNotificationDetails androidNotificationDetails =
+      AndroidNotificationDetails(
+          'alarm_channel3', // ID do canal
+          'Alarm Notifications', // Nome do canal
+          channelDescription: 'Notificações para alarmes agendados',
+          importance: Importance.high,
+          priority: Priority.high,
+          sound: RawResourceAndroidNotificationSound('alarm_sound'));
+
+  const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidNotificationDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    alarmId, // ID da notificação
+    'Hora do remédio', // Título
+    '$userName, está na hora de tomar o remédio: $medicationName.', // Corpo
+    notificationDetails,
+  );
+}
+
 // Função para salvar as informações do alarme
 Future<void> _saveAlarmInfo(
     int alarmId, String userName, String medicationName) async {
-  final prefs = await SharedPreferences.getInstance();
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+
   final alarmInfo = {
     'userName': userName,
     'medicationName': medicationName,
   };
-  await prefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
+  await asyncPrefs.setString('alarm_$alarmId', jsonEncode(alarmInfo));
 }
 
-// Modifique a função _alarmCallback para receber o ID do alarme
+// // Modifique a função _alarmCallback para receber o ID do alarme
 @pragma('vm:entry-point')
 void _alarmCallback(int alarmId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? alarmInfoString = prefs.getString('alarm_$alarmId');
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  final String? alarmInfoString = await asyncPrefs.getString('alarm_$alarmId');
+  print("Informações do alarme ID $alarmId: $alarmInfoString");
 
   if (alarmInfoString != null) {
     final alarmInfo = jsonDecode(alarmInfoString);
     await showNotification(
-      userName: alarmInfo['userName'],
-      medicationName: alarmInfo['medicationName'],
-    );
+        userName: alarmInfo['userName'],
+        medicationName: alarmInfo['medicationName'],
+        alarmId: alarmId);
 
     // Limpar as informações após mostrar a notificação
-    await prefs.remove('alarm_$alarmId');
+    await asyncPrefs.remove('alarm_$alarmId');
+  } else {
+    print('Informações do alarme ID $alarmId não encontradas.');
   }
 
   print("Alarme $alarmId disparado!");
+}
+
+int _generateAlarmId(DateTime dateTime, String medicationId) {
+  return '${dateTime.millisecondsSinceEpoch}_$medicationId'.hashCode;
 }
 
 int _getWeekdayFromName(String dayName) {
@@ -61,10 +95,6 @@ int _getWeekdayFromName(String dayName) {
     default:
       throw ArgumentError("Dia inválido: $dayName");
   }
-}
-
-int _generateAlarmId(DateTime dateTime, String medicationName) {
-  return dateTime.hashCode ^ medicationName.hashCode;
 }
 
 Future<void> scheduleMedicationAlarms(MedicationModel medication) async {
@@ -101,8 +131,7 @@ Future<void> scheduleMedicationAlarms(MedicationModel medication) async {
         alarmDateTime = alarmDateTime.add(const Duration(days: 7));
       }
 
-      final int alarmId =
-          _generateAlarmId(alarmDateTime, medication.medicationName);
+      final int alarmId = _generateAlarmId(alarmDateTime, medication.id);
 
       // Salvar as informações do alarme antes de agendá-lo
       await _saveAlarmInfo(
@@ -113,10 +142,12 @@ Future<void> scheduleMedicationAlarms(MedicationModel medication) async {
 
       print(alarmDateTime);
 
+      print("Agendando alarme para: $alarmDateTime com ID $alarmId");
+
       // Agendar o alarme
       await AndroidAlarmManager.oneShotAt(
         alarmDateTime,
-        _generateAlarmId(alarmDateTime, medication.medicationName), // ID único
+        alarmId, // ID único
         _alarmCallback, // Função que será executada
         exact: true,
         wakeup: true,
@@ -140,21 +171,26 @@ Future<void> cancelMedicationAlarms(MedicationModel medication) async {
       int daysUntilNext = (weekday - now.weekday) % 7;
       if (daysUntilNext < 0) daysUntilNext += 7;
 
-      DateTime alarmDateTime = now
-          .add(Duration(days: daysUntilNext))
-          .copyWith(hour: hour, minute: minute, second: 0);
+      DateTime alarmDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day + daysUntilNext,
+        hour,
+        minute,
+        0,
+      );
 
       if (alarmDateTime.isBefore(now)) {
         alarmDateTime = alarmDateTime.add(const Duration(days: 7));
       }
 
-      final int alarmId =
-          _generateAlarmId(alarmDateTime, medication.medicationName);
+      final int alarmId = _generateAlarmId(alarmDateTime, medication.id);
       await AndroidAlarmManager.cancel(alarmId);
+      print("Alarme com do ID $alarmId removido com sucesso.");
 
       // Também remover as informações salvas no SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('alarm_$alarmId');
+      final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+      await asyncPrefs.remove('alarm_$alarmId');
     }
   }
 }
@@ -260,8 +296,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
   @override
   void initState() {
     Future.microtask(() {
-      Provider.of<MedicationProvider>(context, listen: false)
-          .fetchMedications();
+      // Provider.of<MedicationProvider>(context, listen: false)
+      //     .fetchMedications();
     });
     super.initState();
   }

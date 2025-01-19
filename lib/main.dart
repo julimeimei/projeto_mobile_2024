@@ -9,9 +9,6 @@ import 'package:projeto_mobile/provider/appointment/Doctor.provider.dart';
 import 'package:projeto_mobile/provider/historyMedProvider.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/view/authScreens/signInLogicScreen.dart';
-import 'package:projeto_mobile/view/historyScreen.dart';
-import 'package:projeto_mobile/view/mainScreen.dart';
-import 'package:projeto_mobile/view/medicationDetailsScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -26,15 +23,17 @@ Future main() async {
   );
   //checkAndroidScheduleExactAlarmPermission();
   await AndroidAlarmManager.initialize();
-   // Configura as notificações
+  // Configura as notificações
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-    AndroidFlutterLocalNotificationsPlugin>()!.requestNotificationsPermission();
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()!
+      .requestNotificationsPermission();
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => HistoryMedicationProvider()),

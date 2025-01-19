@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projeto_mobile/constant/constant.dart';
+import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/view/authScreens/registerScreen.dart';
 import 'package:projeto_mobile/view/mainScreen.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -29,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),
       );
+      // Após logar, busque os medicamentos e reagende os alarmes
+    await Provider.of<MedicationProvider>(context, listen: false).fetchMedications();
     } catch (e) {
       print('Erro de login: $e');
       // Exibir mensagem de erro
