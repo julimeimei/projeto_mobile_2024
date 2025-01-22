@@ -5,6 +5,7 @@ import 'package:projeto_mobile/model/userModel.dart';
 import 'package:projeto_mobile/provider/medicationProvider.dart';
 import 'package:projeto_mobile/services/authService.dart';
 import 'package:projeto_mobile/services/profileService.dart';
+import 'package:projeto_mobile/view/appointment/AddDoctorScreen.dart';
 import 'package:projeto_mobile/view/appointment/appointmentScreen.dart';
 import 'package:projeto_mobile/view/authScreens/loginScreen.dart';
 import 'package:projeto_mobile/view/historyScreen.dart';
@@ -12,8 +13,8 @@ import 'package:projeto_mobile/view/medicationScreen.dart';
 import 'package:projeto_mobile/view/taskScreen.dart';
 import 'package:projeto_mobile/view/user/EditUserScreen.dart';
 import 'package:provider/provider.dart';
+import 'package:local_auth/local_auth.dart';
 
-// ignore: must_be_immutable
 class MainScreen extends StatefulWidget {
   MedicationModel? medication;
   MainScreen({this.medication, super.key});
@@ -26,16 +27,35 @@ class _MainScreenState extends State<MainScreen> {
   List<MedicationModel> medications = [];
   List<MedicationModel> medicationHistory = [];
 
-  void addMedicationToHistory(MedicationModel medication) {
-    setState(() {
-      medicationHistory.add(medication);
-    });
-  }
+  final LocalAuthentication auth = LocalAuthentication();
+  bool isAuthenticated = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    _checkBiometricAuth();
+  }
+
+  Future<void> _checkBiometricAuth() async {
+    try {
+      isAuthenticated = await auth.authenticate(
+        localizedReason: 'Por favor, autentique-se para acessar o aplicativo',
+        options: AuthenticationOptions(
+          useErrorDialogs: true,
+          stickyAuth: true,
+        ),
+      );
+    } catch (e) {
+      print(e);
+    }
+
+    if (!isAuthenticated) {
+      // Se a autenticação falhar, forçar o logout ou redirecionar o usuário
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
   }
 
   @override
@@ -82,18 +102,17 @@ class _MainScreenState extends State<MainScreen> {
                         onSelected: (value) {
                           if (value == 'logout') {
                             AuthServices.signOut();
-                            for(var medication in context.read<MedicationProvider>().medications){
+                            for (var medication in context.read<MedicationProvider>().medications) {
                               cancelMedicationAlarms(medication);
                             }
                             Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => LoginScreen()),
-                                (route) => false);
+                              context,
+                              MaterialPageRoute(builder: (context) => LoginScreen()),
+                                  (route) => false,
+                            );
                           }
                         },
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                           const PopupMenuItem<String>(
                             value: 'logout',
                             child: Row(
@@ -113,12 +132,8 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ],
           backgroundColor: Colors.blue[400],
-          // title: Image.asset(
-          //   'images/remanegy-high-resolution-logo-transparent-black.png',
-          //   height: 30,
-          // ),
           title: Text(
-            'Remanegy', 
+            'Remanegy',
             style: GoogleFonts.baumans(
               textStyle: const TextStyle(
                 color: Colors.black,
@@ -179,13 +194,11 @@ class _MainScreenState extends State<MainScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          HistoryScreen(medicationHistory: medicationHistory),
+                      builder: (context) => HistoryScreen(medicationHistory: medicationHistory),
                     ),
                   );
                 },
               ),
-              // Adicionar opção de editar usuário
               ListTile(
                 leading: const Icon(Icons.edit),
                 title: const Text('Editar Usuário'),
@@ -199,20 +212,25 @@ class _MainScreenState extends State<MainScreen> {
                   );
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.person_add),
+                title: const Text('Adicionar Doutor'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddDoctorScreen(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            MedicationScreen(
-              // medications: medications,
-              // onMedicationAdded: (medication) {
-              //   setState(() {
-              //     medications.add(medication);
-              //   });
-              //   addMedicationToHistory(medication);
-              // },
-            ),
+            MedicationScreen(),
             AppointmentScreen(),
             TaskScreen(),
           ],

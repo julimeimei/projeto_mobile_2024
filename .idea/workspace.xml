@@ -1,38 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="37da05fe-975e-4d66-b8f9-8050056011df" name="Changes" comment="Feature: Implements Appointment">
-      <change afterPath="$PROJECT_DIR$/assets/doctor_mock.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/model/Doctor.model.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/model/Workplace.model.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/provider/appointment/AppointmentProvider.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/provider/appointment/Doctor.provider.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/DockerDetailScreen.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/list/HorizontalDoctorList.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/list/checkups/CheckupCard.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/list/checkups/CheckupList.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/list/recentvisits/RecentVisitCard.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/list/recentvisits/RecentVisitsList.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/mocks/AddDoctorsScreen.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/search/MeetADoctor.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/view/user/EditUserScreen.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/view/appointment/AddDoctorScreen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/appointmentModel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/appointmentModel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/view/appointment/appointmentScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/view/appointment/appointmentScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/view/appointment/widgets/dialogs/AppointmentDetailsDialog.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/view/appointment/widgets/dialogs/add_medical_check_dialog.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/kotlin/com/example/projeto_mobile/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/kotlin/com/example/projeto_mobile/MainActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/view/appointment/widgets/forms/add_medical_check_form.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/view/appointment/widgets/forms/add_medical_check_form.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/view/appointment/widgets/list/AppointmentList.dart" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/view/mainScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/view/mainScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projeto_mobile.iml" beforeDir="false" afterPath="$PROJECT_DIR$/projeto_mobile.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +88,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/deriki/StudioProjects/projeto_mobile_2024/lib/assets&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/drk/dev/projeto_mobile_2024&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;,
     &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }

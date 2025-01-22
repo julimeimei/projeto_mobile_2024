@@ -1,10 +1,14 @@
+import 'package:device_calendar/device_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_mobile/provider/appointment/AppointmentProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:projeto_mobile/model/appointmentModel.dart';
-import 'package:fluttertoast/fluttertoast.dart'; // Importar o Fluttertoast
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzData;
+
 
 class AddMedicalCheckForm extends StatefulWidget {
   final String? initialDoctorName;
@@ -24,6 +28,7 @@ class AddMedicalCheckForm extends StatefulWidget {
 
 class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
   final _formKey = GlobalKey<FormState>();
+  final DeviceCalendarPlugin _deviceCalendarPlugin = DeviceCalendarPlugin();
 
   DateTime? date;
   TimeOfDay? time;
@@ -81,7 +86,8 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
 
       Provider.of<AppointmentProvider>(context, listen: false).addAppointment(appointment);
 
-      // Exibe o toast para informar que a operação foi bem-sucedida
+      await _addEventToCalendar(appointment);
+
       Fluttertoast.showToast(
         msg: "Consulta adicionada com sucesso!",
         toastLength: Toast.LENGTH_SHORT,
@@ -94,11 +100,82 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
 
       Navigator.of(context).pop();
     } else {
-      // Exibe um alerta se os campos obrigatórios não forem preenchidos
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Por favor, selecione a data e a hora!')),
       );
     }
+  }
+
+  Future<void> _addEventToCalendar(AppointmentModel appointment) async {
+    tzData.initializeTimeZones();
+
+    final location = tz.getLocation('America/Sao_Paulo');
+
+    final permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
+    if (permissionsGranted.isSuccess && permissionsGranted.data!) {
+      final calendarsResult = await _deviceCalendarPlugin.retrieveCalendars();
+      final calendars = calendarsResult.data;
+      print('Calendários disponíveis: $calendars');
+      if (calendars != null && calendars.isNotEmpty) {
+        final calendar = calendars.first;
+
+        final event = Event(
+          calendar.id,
+          title: 'Consulta Médica com ${appointment.doctorName}',
+          description:
+          'Especialidade: ${appointment.specialty}\nLocal: ${appointment.location}',
+          location: appointment.location,
+          start: tz.TZDateTime.from(
+            DateTime(
+              appointment.date!.year,
+              appointment.date!.month,
+              appointment.date!.day,
+              appointment.time!.hour,
+              appointment.time!.minute,
+            ),
+            location,
+          ),
+          end: tz.TZDateTime.from(
+            DateTime(
+              appointment.date!.year,
+              appointment.date!.month,
+              appointment.date!.day,
+              appointment.time!.hour + 1,
+              appointment.time!.minute,
+            ),
+            location,
+          ),
+        );
+        print('Evento: ${event.title}, Início: ${event.start}, Fim: ${event.end}');
+        final result = await _deviceCalendarPlugin.createOrUpdateEvent(event);
+        if (result!.isSuccess) {
+          Fluttertoast.showToast(
+            msg: "Consulta adicionada ao calendário!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.blue,
+            textColor: Colors.white,
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: "Erro ao adicionar a consulta no calendário!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
+        }
+      }
+    } else {
+      Fluttertoast.showToast(
+        msg: "Permissão de calendário negada.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+    print('Permissão de calendário: ${permissionsGranted.isSuccess}');
   }
 
   @override
@@ -156,7 +233,7 @@ class _AddMedicalCheckFormState extends State<AddMedicalCheckForm> {
             SizedBox(width: 8),
             Text(
               selectedDate != null
-                  ? 'Data: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}' // Formato dia/mês/ano
+                  ? 'Data: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'
                   : selectedTime != null
                   ? 'Hora: ${selectedTime.format(context)}'
                   : label,
